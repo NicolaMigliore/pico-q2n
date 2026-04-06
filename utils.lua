@@ -1,0 +1,206 @@
+-- utils
+function each(t,f,reverse)
+	if reverse then
+		for i=#t,1,-1 do
+			local v=t[i]
+			f(v,i)
+		end		
+	else
+		for i,v in ipairs(t)do
+			local v=t[i]
+			f(v,i)
+		end
+	end
+end
+
+-- @param comp - list of required components to filter entities.
+function each_ent(comp,f,reverse)
+    local query={}
+    for e in all(_entities)do
+        local has_all=true
+        for c in all(comp)do
+            if not e[c] then has_all=has_all and false end
+        end
+        if(has_all)add(query,e)
+    end
+    each(query,f,reverse)
+end
+
+-- point to point distance
+function point_dist(x1,y1,x2,y2)
+	return sqrt((x2-x1)^2+(y2-y1)^2)
+end
+
+-- sprite centered
+function ssprc(sx,sy,sw,sh,dx,dy,dw,dh,fx,oc)
+    dw = dw or sw
+    dh = dh or sh
+    dx = dx - dw/2
+    dy = dy - dh/2
+    fx = fx or false
+
+    -- outline
+    if oc then
+        for i=1,15 do pal(i,oc) end
+        sspr(sx,sy,sw,sh,dx-1,dy,dw,dh,fx)
+        sspr(sx,sy,sw,sh,dx+1,dy,dw,dh,fx)
+        sspr(sx,sy,sw,sh,dx,dy-1,dw,dh,fx)
+        sspr(sx,sy,sw,sh,dx,dy+1,dw,dh,fx)
+        pal()
+    end
+
+    sspr(sx,sy,sw,sh,dx,dy,dw,dh,fx)
+end
+
+function sprc(n,x,y,oc)
+    x = x - 4
+    y = y - 4
+
+    -- outline
+    if oc then
+        for i=1,15 do pal(i,oc) end
+        spr(n,x-1,y)
+        spr(n,x+1,y)
+        spr(n,x,y-1)
+        spr(n,x,y+1)
+        pal()
+    end
+
+    spr(n,x,y)
+end
+
+-- print label
+-- opts.w: max label width in pixels; text wraps to new lines when exceeded.
+-- opts.vcenter: when true, vertically center lines around y (default: false for wrapped text, true otherwise).
+function printl(text,x,y,align,c,oc,opts)
+    text = tostr(text)
+    opts = opts or {}
+    local max_w=opts.w
+    local vcenter=opts.vcenter
+    local lines = {}
+
+    if max_w then
+        local raw_lines=split(text,'\n')
+        for raw in all(raw_lines) do
+            wrap_lines(lines,raw,max_w)
+        end
+    else
+        lines = split(text,'\n')
+    end
+
+    if vcenter==nil then vcenter=not max_w end
+    if vcenter then
+        local h=7*#lines
+        y=y-flr(h/2)
+    end
+    for i,l in ipairs(lines) do
+        local cx=x
+        local cy = y + (i-1)*7
+        c = c or 7
+        local w = print(l,128,-10) - 128
+        if align=='r' then
+            cx = x - w
+        elseif align=='c' then
+            cx = x - w/2
+        end
+        if oc then
+            print(l,cx,cy-1,oc)
+            print(l,cx,cy+1,oc)
+            print(l,cx-1,cy,oc)
+            print(l,cx+1,cy,oc)
+        end
+        print(l,cx,cy,c)
+    end
+end
+
+function wrap_lines(out,raw,max_w)
+    if raw=='' then
+        add(out,'')
+        return
+    end
+
+    local words=split(raw,' ')
+    local cur=''
+    for w in all(words) do
+        local cand=cur=='' and w or cur..' '..w
+        if text_w(cand)<=max_w then
+            cur=cand
+        else
+            if cur!='' then add(out,cur) end
+            if text_w(w)<=max_w then
+                cur=w
+            else
+                cur=break_word(out,w,max_w)
+            end
+        end
+    end
+    if cur!='' then add(out,cur) end
+end
+
+function break_word(out,w,max_w)
+    local part=''
+    for i=1,#w do
+        local ch=sub(w,i,i)
+        local cand=part..ch
+        if part=='' or text_w(cand)<=max_w then
+            part=cand
+        else
+            add(out,part)
+            part=ch
+        end
+    end
+    return part
+end
+
+function text_w(t)
+    return print(t,128,-10)-128
+end
+
+function show_sialog(t,i)
+	i=i or 1
+	local cur_t=t[i]
+end
+
+function bar(x,y,w,p,c)
+    local bw=max((w-2)*p,1)
+    rrectfill(x,y,w,5,1,1)
+    rrectfill(x+1,y+1,bw,3,1,c)
+end
+
+function rndi(m)
+    return flr(rnd(m))
+end
+function new_id()
+    local a,b,c=rndi(9),rndi(5),rndi(9)
+    return a..b..c..'-'..rnd({a,b,c})..'-'..rnd({a,b,c})
+end
+
+-- table functions
+function find(t,s)
+    for i,v in ipairs(t)do
+        if(v==s)return i
+    end
+    return nil
+end
+function filter(t,f)
+    local ret={}
+    for v in all(t)do
+        if(f(v))add(ret,v)
+    end
+    return ret
+end
+--- create a new table with the same elements
+function copy(t)
+    local ret={}
+    for v in all(t)do
+        add(ret,v)
+    end
+    return ret
+end
+
+--animate a text by moving based on a percentage value
+function anim_text(t,sx,sy,dx,dy,p,a,c,oc)
+    local x=sx+(dx-sx)*p
+    local y=sy+(dy-sy)*p
+    printl(t,x,y,a,c,oc)
+end
