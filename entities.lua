@@ -1,10 +1,12 @@
 -- MARK: entity
 -- @param opts: {s:sprite, u:update function, d: draw function}
 function new_ent(x,y,w,opts)
+	opts=opts or {}
 	return {
 		x=x,y=y,w=w or 8,
+		z=opts.z or 0,
 		sprite=opts.s or 1,
-		u=opts.u or function()end,
+		u=opts.u, --or function()end,
 		d=opts.d or function(e)
 			sprc(e.sprite,e.x,e.y,1)
 		end
@@ -13,6 +15,7 @@ end
 
 -- MARK: actor
 function new_actor(x,y,opts)
+	opts=opts or {}
 	return {
 		-- identity
 		id=opts.id,
@@ -20,6 +23,7 @@ function new_actor(x,y,opts)
 
 		-- world/visual
 		x=x,y=y,w=16,
+		z=opts.z or 0,
 		sprite=opts.sprite or {x=0,y=32},
 
 		-- base combat stats
@@ -33,9 +37,11 @@ function new_actor(x,y,opts)
 		block=opts.block or 0, --current block shield remaining
 
 		-- animation definitions
-		a=opts.a or {
-			idle={{8,0},{24,0}}
-		},
+		a=opts.a
+		-- or {
+		-- 	idle={{8,0},{24,0}}
+		-- },
+		,
 
 		-- animation runtime state
 		ai=1,as=.3,
@@ -45,8 +51,8 @@ function new_actor(x,y,opts)
 		
 		col_shape='circle',
 		
-		u=function(s)
-		end,
+		-- u=function(s)
+		-- end,
 		
 		-- d=function(s)
 		-- 	local f=s.a[s.s][flr(s.ai)]

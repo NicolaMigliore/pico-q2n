@@ -1,4 +1,5 @@
-function battle_i()
+function battle_i(opts)
+    opts=opts or {}
     actions={
         {name='attack',spr=104},
         {name='block',spr=105},
@@ -10,10 +11,23 @@ function battle_i()
         {t=1,e=new_actor(27,70,{id='mas',name='maspidez',a={idle={{8,16},{24,16}}}}),action=nil,target=nil},
         {t=1,e=new_actor(42,75,{id='dal',name='daliria',a={idle={{0,32},{16,32}}}}),action=nil,target=nil},
     }
-    t2={
-        {t=2,e=new_actor(82,65,{id='pos',name='pos.bove',a={idle={{32,32},{48,32}}}}),action=nil,target=nil},
-        {t=2,e=new_actor(97,70,{id='yun',name='yuna',a={idle={{64,32},{80,32}}}}),action=nil,target=nil},
-    }
+    if opts.enemy_team and #opts.enemy_team>0 then
+        t2={}
+        for e in all(opts.enemy_team) do
+            local ne=new_actor(e.x,e.y,{
+                id=e.id,
+                name=e.name,
+                a=e.a,
+                hp=e.hp,ap=e.ap,bp=e.bp,he=e.he,bm=e.bm
+            })
+            add(t2,{t=2,e=ne,action=nil,target=nil})
+        end
+    else
+        t2={
+            {t=2,e=new_actor(82,65,{id='pos',name='pos.bove',a={idle={{32,32},{48,32}}}}),action=nil,target=nil},
+            {t=2,e=new_actor(97,70,{id='yun',name='yuna',a={idle={{64,32},{80,32}}}}),action=nil,target=nil},
+        }
+    end
     _entities={}
     for tm in all(t1) do
         add(_entities,tm.e)
@@ -34,7 +48,7 @@ function battle_i()
     phase='pick_unit'
     msg='assign actions'
 
-    add_timer('transition', 1, function()end)
+    -- add_timer('transition', 1, function()end)
 end
 
 function battle_u()
@@ -44,7 +58,7 @@ function battle_u()
     update_action_fx()
 
     if phase=='done' then
-        if(btnp(🅾️))set_scene('battle')
+        if(btnp(🅾️))set_scene('world')
         return
     end
 

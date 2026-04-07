@@ -1,4 +1,8 @@
 -- utils
+function log(_text, override)
+    printh(_text, "log", override or false)
+end
+
 function each(t,f,reverse)
 	if reverse then
 		for i=#t,1,-1 do

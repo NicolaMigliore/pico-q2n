@@ -2,39 +2,22 @@
 function _init()
     _timers = {}
 
-	-- player
-	local a={
-			idle={{8,0},{24,0}}
-		}
-	_p=new_actor(64,64,a)
-	_p.u=function(s)
-			if(btn(⬆️))s.y-=1
-			if(btn(⬇️))s.y+=1
-			if(btn(⬅️))s.x-=1
-			if(btn(➡️))s.x+=1
-		end
-		
 	-- actors
-	_entities={
-		_p,
-		-- new_actor(50,100,{name="elfamir",a={idle={{8,16},{24,16}}}}),
-		-- new_pickup(10,20),
-		-- new_pickup(40,75),
-		new_ent(100,100,8,{s={x=0,y=64,o=1}})
-	}
+	_entities={}
 	
 	-- scenes
 	_scenes={
 		test={i=function()tmp=new_id()end,u=function()end,d=function()print(tmp,1,1,1)end},
 		battle={i=battle_i,u=battle_u,d=battle_d},
+		world={i=world_i,u=world_u,d=world_d},
 	}
-	cur_scene=nil
-	set_scene('battle')
+	cur_scene=_scenes.test
+	set_scene('world')
 	-- set_scene('test')
 
 	pts=0
 	deb=nil
-	show_col=false
+	show_col=true
 	flash=1
 	blink_c=9
 end
@@ -53,52 +36,12 @@ function _update()
         end
     end
 
-
 	cur_scene.u()
-
-	-- animation()
-
-	-- each(_entities,function(e,i)
-	-- 	e:u()
-		
-	-- 	-- animation
-	-- 	-- if(e.a)anim(e,e.s)
-		
-	-- 	-- collision checks
-	-- 	if e.col_shape then
-	-- 		each(_entities,function(o)
-	-- 			if e!=o and o.col_shape then
-	-- 				local d=e.w/2+o.w/2
-	-- 				local collided=point_dist(e.x,e.y,o.x,o.y)<d
-	-- 				if collided then
-	-- 					if(e.col_func)e.col_func(e,o)if(e.del)del(_entities,e)
-	-- 					if(o.col_func)o.col_func(o,e)if(o.del)del(_entities,o)
-	-- 				end
-	-- 			end
-	-- 		end)
-	-- 	end
-	-- end,true)
-
 end
 
 function _draw()
 	cls(6)
 	cur_scene.d()
-
-	-- graphics()
-
-	-- each(_entities,function(e)
-	-- 	-- e:d()
-		
-	-- 	if show_col then
-	-- 		local c=2
-	-- 		if(e.del)c=7
-	-- 		if(e.col_shape=='circle')circ(e.x,e.y,e.w/2,c)
-	-- 	end
-	-- end)
-	
-	-- -- points
-	-- print('points:'..pts,2,2,9)
 
 	-- draw transition
     local trans_timer = get_timer('transition') 
@@ -111,8 +54,13 @@ function _draw()
 	if(deb)print(deb,70,10)
 end
 
-function set_scene(newscene)
-	if(_scenes[newscene])cur_scene=_scenes[newscene] cur_scene.i()
+function set_scene(newscene,opts)
+	if(_scenes[newscene]) then
+		add_timer('transition', 1, function()
+		cur_scene=_scenes[newscene]
+		cur_scene.i(opts)
+		end)
+	end
 end
 
 --- sort the elements

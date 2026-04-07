@@ -1,13 +1,27 @@
 function graphics()
-    -- sort based on y
+    -- sort by z (low->high), then y (low->high)
 	sort(_entities,function(a,b)
-		return a.y>b.y
+		local az,bz=a.z or 0,b.z or 0
+		if az!=bz then return az>bz end
+		local ay,by=a.y or 0,b.y or 0
+		return ay>by
 	end)
 
-    --animated entities
-    each_ent({'sprite'}, function(e)
+    -- draw entities through shared rendering pipeline
+    each(_entities, function(e)
         if(e.shader)shade(e)
-        ssprc(e.sprite.x,e.sprite.y,e.w,e.w,e.x,e.y,e.w,e.w,false,e.sprite.o)
+
+        if e.sprite and e.sprite.x and e.sprite.y then
+            ssprc(e.sprite.x,e.sprite.y,e.w,e.w,e.x,e.y,e.w,e.w,false,e.sprite.o)
+        elseif e.d then
+            e.d(e)
+        end
+
+        if show_col and e.collider then
+            local cc=e.collider.colliding and 8 or 2
+            circ(e.x,e.y,e.collider.r or 0,cc)
+        end
+
         pal()
     end)
 end
@@ -30,5 +44,42 @@ end
 function shade(e)
     for rep in all(e.shader)do
         pal(rep[1],rep[2])
+    end
+end
+
+--called each frame
+function control()
+    each_ent('u',function(e)
+        e.u(e)
+    end)
+end
+
+function physic()
+    -- reset collision state
+    each(_entities,function(e)
+        if e and e.collider then
+            e.collider.colliding=false
+        end
+    end)
+
+    -- pairwise circular collider checks
+    for i=1,#_entities-1 do
+        local e=_entities[i]
+        if e and e.collider then
+            for j=i+1,#_entities do
+                local o=_entities[j]
+                if o and o.collider then
+                    local r=(e.collider.r or 0)+(o.collider.r or 0)
+                    local hit=point_dist(e.x,e.y,o.x,o.y)<=r
+                    if hit then
+                        e.collider.colliding=true
+                        o.collider.colliding=true
+                        if e.collider.onenter then e.collider.onenter(e,o) end
+                    end
+                end
+            end
+            local col=e.collider
+            if(col.colliding and col.whilecolliding)col.whilecolliding(e)
+        end
     end
 end

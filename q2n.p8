@@ -4,7 +4,9 @@ __lua__
 #include main.lua
 #include utils.lua
 #include systems.lua
+#include components.lua
 #include battle.lua
+#include world.lua
 
 #include entities.lua
 
