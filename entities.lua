@@ -27,21 +27,18 @@ function new_actor(x,y,opts)
 		sprite=opts.sprite or {x=0,y=32},
 
 		-- base combat stats
-        hp=opts.hp or 50,	--health points
-		ap=opts.ap or 10,	--attack power
-		bp=opts.bp or 5,	--block power
-		he=opts.he or 15,	--heal amount
-		bm=opts.bm or .5,	--boost modifier used when this actor boosts allies
+        hp=opts.hp or 5,	--health points
+		max_hp=opts.max_hp or opts.hp or 5,
+		ap=opts.ap or 1,	--attack power
+		bp=opts.bp or 1,	--block power
+		he=opts.he or 1,	--heal amount
+		bm=opts.bm or 1,	--boost modifier used when this actor boosts allies
 
 		-- runtime combat state
 		block=opts.block or 0, --current block shield remaining
 
 		-- animation definitions
-		a=opts.a
-		-- or {
-		-- 	idle={{8,0},{24,0}}
-		-- },
-		,
+		a=opts.a,
 
 		-- animation runtime state
 		ai=1,as=.3,
@@ -50,17 +47,5 @@ function new_actor(x,y,opts)
 		shader=opts.shader,
 		
 		col_shape='circle',
-		
-		-- u=function(s)
-		-- end,
-		
-		-- d=function(s)
-		-- 	local f=s.a[s.s][flr(s.ai)]
-		-- 	local x,y=f[1],f[2]
-		-- 	ssprc(x,y,16,16,s.x,s.y)
-
-        --     local label='hp:'..s.hp
-        --     printl(label,s.x,s.y-s.w/2-3,'c',7,1)
-		-- end
 	}
 end

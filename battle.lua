@@ -7,13 +7,13 @@ function battle_i(opts)
         {name='boost',spr=107}
     }
     t1={
-        {t=1,e=new_character('elf',12,65),action=nil,target=nil},
-        {t=1,e=new_character('mas',27,70),action=nil,target=nil},
-        {t=1,e=new_character('dal',42,75),action=nil,target=nil},
+        {t=1,e=new_character('elf',12,72),action=nil,target=nil},
+        {t=1,e=new_character('mas',27,77),action=nil,target=nil},
+        {t=1,e=new_character('dal',42,82),action=nil,target=nil},
     }
     if opts.enemy_team and #opts.enemy_team>0 then
         t2={}
-        local positions={{x=82,y=65},{x=97,y=70},{x=112,y=75}}
+        local positions={{x=82,y=72},{x=97,y=77},{x=112,y=82}}
         each(opts.enemy_team,function(e_id,i)
             local p=positions[i]
             local ne=new_character(e_id,p.x,p.y,{})
@@ -108,17 +108,17 @@ function battle_u()
     end
 end
 
+--MARK:Draw
 function battle_d()
     --scene
     cls(13)
-    ovalfill(1,63,55,88,3)
-    ovalfill(3,65,53,86,11)
+    ovalfill(1,70,55,95,3)
+    ovalfill(3,72,53,93,11)
 
-    ovalfill(71,63,125,88,3)
-    ovalfill(73,65,123,86,11)
+    ovalfill(71,70,125,95,3)
+    ovalfill(73,72,123,93,11)
 
     graphics()
-    draw_attack_fx()
 
 
     -- ui
@@ -127,27 +127,29 @@ function battle_d()
         local selected=(phase=='pick_unit' or phase=='pick_action') and i==sel_i
         local target_selected=phase=='pick_target' and current_target_group()=='ally' and i==tar_i
         selected=selected or target_selected
-        local ox,oy=2,2+13*(i-1)
-        local l,w,h,c=sub(e.name,1,3)..' hp:'..e.hp,57,11,5
+        -- local ox,oy=2,2+13*(i-1)
+        local ox,oy=2,2+17*(i-1)
+        local w,c=57,5
         if(selected)ox,c=ox+4,1
 
-        d_char_card(ox,oy,l,c)
-        if(tm.action)sprc(tm.action.spr,ox+w-7,oy+6,action_fx_color(tm.action))
-        -- if(phase=='pick_unit' and i==sel_i)printl('⬇️',e.x,e.y-13,'c',9,1)
+        d_char_card(ox,oy,e,c)
+        if(tm.action)sprc(tm.action.spr,ox+w-6,oy+9,action_fx_color(tm.action))
+        -- if(tm.action)pal(5,1)sprc(tm.action.spr,e.x-3,e.y+8,action_fx_color(tm.action))pal()
     end)
 
     each(t2,function(tm,i)
         local e=tm.e
         local selected=phase=='pick_target' and current_target_group()=='enemy' and i==tar_i
-        local l,w,c=sub(e.name,1,3)..' hp:'..e.hp,57,5
-        local ox,oy=127-w-1,2+13*(i-1)
+        local w,c=57,5
+        local ox,oy=127-w-1,2+17*(i-1)
         if(selected)ox,c=ox-4,1
-        d_char_card(ox,oy,l,c)
+        d_char_card(ox,oy,e,c)
+        if(tm.action)sprc(tm.action.spr,ox+w-6,oy+9,action_fx_color(tm.action))
     end)
 
     -- commands
-    rrectfill(1,90,126,36,2,1)
-    rrectfill(2,91,124,34,2,6)
+    rrectfill(1,97,126,30,2,1)
+    rrectfill(2,98,124,28,2,6)
 
     local sel_tm=t1[sel_i]
     local sel_e=sel_tm and sel_tm.e
@@ -157,7 +159,7 @@ function battle_d()
 
     if phase=='pick_unit' then
         if sel_e then
-            printl('select ally: '..sel_e.name,4,93,nil,1,nil,{w=118})
+            printl('select ally: '..sel_e.name,4,100,nil,1,nil,{w=118})
             print_char_stats(sel_e)
             printl('⬇️',sel_e.x,sel_e.y-13,'c',9,1)
         end
@@ -167,7 +169,7 @@ function battle_d()
             local col=(i-1)%2
             local row=flr((i-1)/2)
             local ox=6+60*col
-            local oy=100+13*row
+            local oy=107+9*row
 
             sprc(a.spr,ox+4,oy,action_fx_color(a))
             printl(a.name,ox+11,oy+2,nil,c)
@@ -175,22 +177,23 @@ function battle_d()
     elseif phase=='pick_target' then
         if tar_e then
             if current_target_group()=='ally' then
-                printl('select ally: '..tar_e.name,4,93,nil,1,nil,{w=118})
+                printl('select ally: '..tar_e.name,4,100,nil,1,nil,{w=118})
             else
-                printl('select target: '..tar_e.name,4,93,nil,1,nil,{w=118})
+                printl('select target: '..tar_e.name,4,100,nil,1,nil,{w=118})
             end
             print_char_stats(tar_e)
             printl('⬇️',tar_e.x,tar_e.y-13,'c',action_fx_color(actions[action_i]),1)
         else
-            printl('no target available',4,93,nil,1,nil,{w=118})
+            printl('no target available',4,100,nil,1,nil,{w=118})
         end
     elseif phase=='execute' then
-        printl(msg,4,93,nil,1,nil,{w=118})
+        printl(msg,4,100,nil,1,nil,{w=118})
     elseif phase=='done' then
-        printl(msg,4,93,nil,1,nil,{w=118})
+        printl(msg,4,100,nil,1,nil,{w=118})
     end
 
     draw_o_prompt()
+    draw_attack_fx()
 end
 
 function draw_o_prompt()
@@ -214,8 +217,8 @@ end
 
 function action_priority(a)
     local n=a and a.name
-    if n=='block' then return 1 end
-    if n=='boost' then return 2 end
+    if n=='boost' then return 1 end
+    if n=='block' then return 2 end
     if n=='heal' then return 3 end
     if n=='attack' then return 4 end
     return 99
@@ -398,11 +401,13 @@ function do_next_action()
 
     if action and action.name=='attack' and target_tm then
         local target=target_tm.e
-        local dmg=(attacker.ap or 0)+(step.boost_ap or 0)
-        dmg=apply_block(target,dmg)
+        local raw=(attacker.ap or 0)+(step.boost_ap or 0)
+        local block0=target.block or 0
+        local dmg=apply_block(target,raw)
         local hp0=target.hp
         local hp1=max(hp0-dmg,0)
-        msg=attacker.name..' attacks '..target.name
+        msg=attacker.name..' hits '..target.name..' '..dmg
+        if block0>0 then msg=msg..'('..raw..'-'..min(block0,raw)..')' end
         atk_fx={
             text='-'..dmg,
             sx=target.x,
@@ -429,7 +434,7 @@ function do_next_action()
         local target=target_tm.e
         local he=(attacker.he or 0)+(step.boost_he or 0)
         local hp0=target.hp
-        local hp1=min(hp0+he,100)
+        local hp1=min(hp0+he,target.max_hp or hp0)
         msg=attacker.name..' heals '..target.name
         atk_fx={
             text='+'..he,
@@ -463,18 +468,18 @@ function do_next_action()
         if ta=='attack' then
             local base=target_tm.e.ap or 0
             local bonus=base*bm
+            msg=attacker.name..' boosts '..target_name..' atk='..base+target_tm.boost_ap..'+'..bonus
             target_tm.boost_ap=(target_tm.boost_ap or 0)+bonus
-            msg=attacker.name..' boosts '..target_name..' atk +'..bonus
         elseif ta=='heal' then
             local base=target_tm.e.he or 0
             local bonus=base*bm
+            msg=attacker.name..' boosts '..target_name..' heal='..base+target_tm.boost_he..'+'..bonus
             target_tm.boost_he=(target_tm.boost_he or 0)+bonus
-            msg=attacker.name..' boosts '..target_name..' heal +'..bonus
         elseif ta=='block' then
             local base=target_tm.e.bp or 0
             local bonus=base*bm
+            msg=attacker.name..' boosts '..target_name..' block='..base+target_tm.boost_bp ..'+'..bonus
             target_tm.boost_bp=(target_tm.boost_bp or 0)+bonus
-            msg=attacker.name..' boosts '..target_name..' block +'..bonus
         else
             msg=attacker.name..' boosts '..target_name..' (no effect)'
         end
@@ -499,7 +504,7 @@ end
 function auto_plan_enemy_orders()
     local q=shuffled_team(t2)
     for tm in all(q) do
-        local a=rnd(actions)
+        local a=pick_weighted_action(team_action_weights(tm))
         tm.action=a
         tm.target=nil
         tm.order=assign_i
@@ -507,9 +512,134 @@ function auto_plan_enemy_orders()
 
         if action_requires_target(a) then
             local targets=targets_for_team_action(tm.t,a)
-            if #targets>0 then tm.target=rnd(targets) end
+            if #targets>0 then tm.target=pick_weighted_target(tm,a.name,targets) end
         end
     end
+end
+
+function team_action_weights(tm)
+    local e=tm and tm.e or nil
+    local weights={}
+    if not e then return weights end
+
+    -- stats drive the base tendency for each action
+    weights.attack=1+(e.ap or 0)*2
+    weights.block=1+(e.bp or 0)*2
+    weights.heal=1+(e.he or 0)*2
+    weights.boost=1+(e.bm or 0)*2
+
+    -- low hp enemies lean defensive/supportive
+    if e.hp<=2 then
+        weights.block+=3
+        weights.heal+=2
+    end
+
+    -- heal becomes more attractive when allies are hurt
+    weights.heal+=count_damaged_team_members(tm.t)*(e.he or 0)
+
+    -- boost is best when allies have actions worth boosting
+    if count_boostable_allies(tm)>=1 then
+        weights.boost+=2*(e.bm or 0)
+    else
+        weights.boost=max(weights.boost-2,0)
+    end
+
+    -- if nobody is hurt, de-emphasize healing a bit
+    if count_damaged_team_members(tm.t)<=0 then
+        weights.heal=max(weights.heal-2,0)
+    end
+
+    return weights
+end
+
+function pick_weighted_action(weights)
+    local total=0
+    for a in all(actions) do
+        total+=max(weights[a.name] or 0,0)
+    end
+
+    if total<=0 then return actions[1] end
+
+    local roll=rnd(total)
+    local acc=0
+    for a in all(actions) do
+        acc+=max(weights[a.name] or 0,0)
+        if roll<acc then
+            return a
+        end
+    end
+
+    return actions[1]
+end
+
+function pick_weighted_target(src_tm,a,targets)
+    local total=0
+    local weights={}
+
+    for tm in all(targets) do
+        local w=1
+        local e=tm.e
+
+        if a=='attack' then
+            w+=max(6-(e.hp or 0),0)
+            w+=max((e.ap or 0)-1,0)
+            w+=max((e.he or 0)-1,0)
+        elseif a=='heal' then
+            w+=max(6-(e.hp or 0),0)*2
+        elseif a=='boost' then
+            if tm==src_tm then
+                w=0
+            elseif tm.action then
+                local ta=tm.action.name
+                if ta=='attack' then w+=(e.ap or 0)*2
+                elseif ta=='heal' then w+=(e.he or 0)*2
+                elseif ta=='block' then w+=(e.bp or 0)*2
+                else w=0 end
+            else
+                w=0
+            end
+        end
+
+        w=max(w,0)
+        weights[tm]=w
+        total+=w
+    end
+
+    if total<=0 then return rnd(targets) end
+
+    local roll=rnd(total)
+    local acc=0
+    for tm in all(targets) do
+        acc+=weights[tm] or 0
+        if roll<acc then return tm end
+    end
+
+    return targets[1]
+end
+
+function count_damaged_team_members(team_id)
+    local team=team_id==1 and t1 or t2
+    local c=0
+    for tm in all(team) do
+        if tm.e and tm.e.hp<(tm.e.max_hp or tm.e.hp) then
+            c+=1
+        end
+    end
+    return c
+end
+
+function count_boostable_allies(src_tm)
+    local team=src_tm.t==1 and t1 or t2
+    local c=0
+    for tm in all(team) do
+        if tm!=src_tm and tm.action then
+            local n=tm.action.name
+            if n=='attack' or n=='heal' or n=='block' then
+                c+=1
+            end
+        end
+    end
+    return c
 end
 
 function targets_for_team_action(team_id,a)
@@ -580,7 +710,8 @@ function draw_attack_fx()
     local t=get_timer('atk_anim')
     if not atk_fx or not t or t.done then return end
     if atk_fx.e and atk_fx.mode!='boost' then
-        bar(atk_fx.e.x-8,atk_fx.e.y-14,16,atk_fx.e.hp/100,12)
+        -- local max_hp=max(atk_fx.e.max_hp or 1,1)
+        bar(atk_fx.e.x-8,atk_fx.e.y-14,16,min(atk_fx.e.hp/atk_fx.e.max_hp,1),12)
     end
     if atk_fx.text and atk_fx.sx and atk_fx.sy and atk_fx.dx and atk_fx.dy then
         anim_text(atk_fx.text,atk_fx.sx,atk_fx.sy,atk_fx.dx,atk_fx.dy,t.perc,'c',atk_fx.c or 8,1)
@@ -650,12 +781,13 @@ function apply_block(target,dmg)
     return dmg-absorbed
 end
 
-function d_char_card(x,y,l,c)
-    local w,h=57,11
+function d_char_card(x,y,e,c)
+    local w,h=57,16
 
     rrectfill(x,y,w,h,1,c)
     rrectfill(x+1,y+1,w-2,h-2,1,6)
-    printl(l,x+2,y+6,nil,c)
+    printl(e.name,x+2,y+5,nil,c)
+    printl('hp:'..e.hp..' bk:'..e.block,x+2,y+12,nil,c)
 end
 
 function print_char_stats(e)
@@ -669,7 +801,7 @@ function print_char_stats(e)
         local col=(i-1)%2
         local row=flr((i-1)/2)
         local ox=60*col
-        local oy=104+13*row
+        local oy=111+9*row
         local l=s.l..':'..e[s.k]
         printl(l,ox+11,oy+2,nil,1)
     end)
