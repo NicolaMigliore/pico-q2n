@@ -1,5 +1,5 @@
 function world_i()
-    player=new_character('elf',20,100)
+    player=new_character('elf',20,50)
     player.collider=new_collider(8)
     levels={
         {

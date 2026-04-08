@@ -42,7 +42,7 @@ function battle_i(opts)
 
     -- add_timer('transition', 1, function()end)
 end
-
+--MARK:Update
 function battle_u()
     animation()
     cleanup_dead()
@@ -105,7 +105,6 @@ function battle_u()
     elseif phase=='execute' then
         if exec_wait then return end
         if(btnp(🅾️))do_next_action()
-
     end
 end
 
@@ -134,7 +133,7 @@ function battle_d()
 
         d_char_card(ox,oy,l,c)
         if(tm.action)sprc(tm.action.spr,ox+w-7,oy+6,action_fx_color(tm.action))
-        if(phase=='pick_unit' and i==sel_i)printl('⬇️',e.x,e.y-13,'c',9,1)
+        -- if(phase=='pick_unit' and i==sel_i)printl('⬇️',e.x,e.y-13,'c',9,1)
     end)
 
     each(t2,function(tm,i)
@@ -150,8 +149,18 @@ function battle_d()
     rrectfill(1,90,126,36,2,1)
     rrectfill(2,91,124,34,2,6)
 
+    local sel_tm=t1[sel_i]
+    local sel_e=sel_tm and sel_tm.e
+    local targets=current_targets()
+    local target_tm=targets and targets[tar_i]
+    local tar_e=target_tm and target_tm.e
+
     if phase=='pick_unit' then
-        printl('select ally to order',4,96,nil,1,nil,{w=118})
+        if sel_e then
+            printl('select ally: '..sel_e.name,4,93,nil,1,nil,{w=118})
+            print_char_stats(sel_e)
+            printl('⬇️',sel_e.x,sel_e.y-13,'c',9,1)
+        end
     elseif phase=='pick_action' then
         each(actions,function(a,i)
             local c=i==action_i and 1 or 5
@@ -164,15 +173,21 @@ function battle_d()
             printl(a.name,ox+11,oy+2,nil,c)
         end)
     elseif phase=='pick_target' then
-        if current_target_group()=='ally' then
-            printl('select ally',4,96,nil,1,nil,{w=118})
+        if tar_e then
+            if current_target_group()=='ally' then
+                printl('select ally: '..tar_e.name,4,93,nil,1,nil,{w=118})
+            else
+                printl('select target: '..tar_e.name,4,93,nil,1,nil,{w=118})
+            end
+            print_char_stats(tar_e)
+            printl('⬇️',tar_e.x,tar_e.y-13,'c',action_fx_color(actions[action_i]),1)
         else
-            printl('select target',4,96,nil,1,nil,{w=118})
+            printl('no target available',4,93,nil,1,nil,{w=118})
         end
     elseif phase=='execute' then
-        printl(msg,4,96,nil,1,nil,{w=118})
+        printl(msg,4,93,nil,1,nil,{w=118})
     elseif phase=='done' then
-        printl(msg,4,96,nil,1,nil,{w=118})
+        printl(msg,4,93,nil,1,nil,{w=118})
     end
 
     draw_o_prompt()
@@ -180,7 +195,7 @@ end
 
 function draw_o_prompt()
     if phase=='pick_unit' or phase=='pick_action' or phase=='pick_target' or phase=='execute' or phase=='done' then
-        printl('🅾️',124,120,'r',1,blink_c)
+        if(flash>.2)printl('🅾️',124,120,'r',9,1)
     end
 end
 
@@ -641,4 +656,21 @@ function d_char_card(x,y,l,c)
     rrectfill(x,y,w,h,1,c)
     rrectfill(x+1,y+1,w-2,h-2,1,6)
     printl(l,x+2,y+6,nil,c)
+end
+
+function print_char_stats(e)
+    local stats={
+        {k='ap',l='atk pwr'},
+        {k='bp',l='block'},
+        {k='he',l='heal'},
+        {k='bm',l='boost'}
+    }
+    each(stats,function(s,i)
+        local col=(i-1)%2
+        local row=flr((i-1)/2)
+        local ox=60*col
+        local oy=104+13*row
+        local l=s.l..':'..e[s.k]
+        printl(l,ox+11,oy+2,nil,1)
+    end)
 end
