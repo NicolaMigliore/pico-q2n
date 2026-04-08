@@ -1,6 +1,7 @@
 -- main
 function _init()
     _timers = {}
+    characters_i()
 
 	-- actors
 	_entities={}
@@ -17,7 +18,7 @@ function _init()
 
 	pts=0
 	deb=nil
-	show_col=true
+	show_col=false
 	flash=1
 	blink_c=9
 end

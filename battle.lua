@@ -7,26 +7,18 @@ function battle_i(opts)
         {name='boost',spr=107}
     }
     t1={
-        {t=1,e=new_actor(12,65,{id='elf',name='elfmir',a={idle={{8,0},{24,0}}}}),action=nil,target=nil},
-        {t=1,e=new_actor(27,70,{id='mas',name='maspidez',a={idle={{8,16},{24,16}}}}),action=nil,target=nil},
-        {t=1,e=new_actor(42,75,{id='dal',name='daliria',a={idle={{0,32},{16,32}}}}),action=nil,target=nil},
+        {t=1,e=new_character('elf',12,65),action=nil,target=nil},
+        {t=1,e=new_character('mas',27,70),action=nil,target=nil},
+        {t=1,e=new_character('dal',42,75),action=nil,target=nil},
     }
     if opts.enemy_team and #opts.enemy_team>0 then
         t2={}
-        for e in all(opts.enemy_team) do
-            local ne=new_actor(e.x,e.y,{
-                id=e.id,
-                name=e.name,
-                a=e.a,
-                hp=e.hp,ap=e.ap,bp=e.bp,he=e.he,bm=e.bm
-            })
+        local positions={{x=82,y=65},{x=97,y=70},{x=112,y=75}}
+        each(opts.enemy_team,function(e_id,i)
+            local p=positions[i]
+            local ne=new_character(e_id,p.x,p.y,{})
             add(t2,{t=2,e=ne,action=nil,target=nil})
-        end
-    else
-        t2={
-            {t=2,e=new_actor(82,65,{id='pos',name='pos.bove',a={idle={{32,32},{48,32}}}}),action=nil,target=nil},
-            {t=2,e=new_actor(97,70,{id='yun',name='yuna',a={idle={{64,32},{80,32}}}}),action=nil,target=nil},
-        }
+        end)
     end
     _entities={}
     for tm in all(t1) do
@@ -625,13 +617,6 @@ function refresh_actor_shader(e)
         e.sprite.o=12
     else
         e.sprite.o=nil
-    end
-end
-
-function set_flat_shader(e,c)
-    e.shader={}
-    for i=1,15 do
-        add(e.shader,{i,c})
     end
 end
 
