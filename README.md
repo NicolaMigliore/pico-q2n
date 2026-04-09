@@ -12,3 +12,24 @@ The game should include a rock-paper-scissor system of attack types.
   - boosts ally `attack` from ally `ap`
   - boosts ally `heal` from ally `he`
   - boosts ally `block` from ally `bp`
+
+## Cartdata Layout
+The cart uses `cartdata('pico-q2n')`.
+
+- 0: `max_team_size`
+- 1: active team slot 1 as `roster_ids` index
+- 2: active team slot 2 as `roster_ids` index
+- 3: active team slot 3 as `roster_ids` index
+- 4: `unlocked_chars`
+- 5: `unlocked_levels`
+
+Notes:
+- Active team entries are stored as indices into `roster_ids`, not as character ids.
+- `0` means "empty / unset" for team slots.
+- When save data is missing, defaults are initialized on boot.
+
+# TODO
+- [] particle system
+- [] animate battle
+- [] sfx
+- [] music

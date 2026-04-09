@@ -1,7 +1,31 @@
 -- main
 function _init()
     _timers = {}
+    init_save()
     characters_i()
+
+    -- team
+    roster_ids={'elf','mas','dal','pos','yun','kil','man'}
+    max_team_size=load_data('max_team_size')
+    if max_team_size==nil then
+        max_team_size=1
+        store_data('max_team_size',max_team_size)
+    end
+    unlocked_chars=load_data('unlocked_chars')
+    if unlocked_chars==nil then
+        unlocked_chars=2
+        store_data('unlocked_chars',unlocked_chars)
+    end
+    active_team=load_data('active_team')
+    if active_team==nil then
+        active_team={roster_ids[1]}
+        store_data('active_team',{1,0,0})
+    end
+    unlocked_levels=load_data('unlocked_levels')
+    if unlocked_levels==nil then
+        unlocked_levels=1
+        store_data('unlocked_levels',unlocked_levels)
+    end
 
 	-- actors
 	_entities={}
@@ -10,6 +34,7 @@ function _init()
 	_scenes={
 		test={i=function()tmp=new_id()end,u=function()end,d=function()print(tmp,1,1,1)end},
 		battle={i=battle_i,u=battle_u,d=battle_d},
+		team={i=team_i,u=team_u,d=team_d},
 		world={i=world_i,u=world_u,d=world_d},
 	}
 	cur_scene=_scenes.test
@@ -87,4 +112,56 @@ function add_timer(name, time, fn)
 end
 function get_timer(name)
     return _timers[name]
+end
+
+function init_save()
+    cartdata('pico-q2n')
+end
+
+function store_data(k,v)
+    if k=='max_team_size' then
+        dset(0,v)
+    elseif k=='active_team' then
+        local a=v
+        if a[1] and type(a[1])=='string' then
+            a={
+                find(roster_ids,a[1]) or 0,
+                find(roster_ids,a[2]) or 0,
+                find(roster_ids,a[3]) or 0
+            }
+        end
+        dset(1,a[1] or 0)
+        dset(2,a[2] or 0)
+        dset(3,a[3] or 0)
+    elseif k=='unlocked_chars' then
+        dset(4,v)
+    elseif k=='unlocked_levels' then
+        dset(5,v)
+    end
+end
+
+function load_data(k)
+    if k=='max_team_size' then
+        local v=dget(0)
+        if v==0 then return nil end
+        return v
+    elseif k=='unlocked_chars' then
+        local v=dget(4)
+        if v==0 then return nil end
+        return v
+    elseif k=='unlocked_levels' then
+        local v=dget(5)
+        if v==0 then return nil end
+        return v
+    elseif k=='active_team' then
+        local ids={}
+        local i1=dget(1)
+        local i2=dget(2)
+        local i3=dget(3)
+        if i1==0 and i2==0 and i3==0 then return nil end
+        if i1>0 and roster_ids[i1] then add(ids,roster_ids[i1]) end
+        if i2>0 and roster_ids[i2] then add(ids,roster_ids[i2]) end
+        if i3>0 and roster_ids[i3] then add(ids,roster_ids[i3]) end
+        return ids
+    end
 end

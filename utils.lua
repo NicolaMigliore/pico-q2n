@@ -208,3 +208,9 @@ function anim_text(t,sx,sy,dx,dy,p,a,c,oc)
     local y=sy+(dy-sy)*p
     printl(t,x,y,a,c,oc)
 end
+
+function d_ui_panel(x,y,w,h)
+    x,y,w,h=x or 1,y or 97,w or 126,h or 30
+    rrectfill(x,y,w,h,2,1)
+    rrectfill(x+1,y+1,w-2,h-2,2,6)
+end

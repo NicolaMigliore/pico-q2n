@@ -1,12 +1,15 @@
 function world_i()
-    player=new_character('elf',20,50)
+    player=new_character(active_team[1],20,50)
     player.collider=new_collider(8)
-    levels={
+    local all_levels={
         {
             x=25,y=30,
             enemy_team={
                 new_character('dal',82,65),
-            }
+            },
+            onwin=function()
+                unlock_lv(2)
+            end
         },
         {
             x=110,y=24,
@@ -23,6 +26,10 @@ function world_i()
             }
         }
     }
+    levels={}
+    for i=1,min(unlocked_levels or #all_levels,#all_levels) do
+        add(levels,all_levels[i])
+    end
 
     _entities={player}
     each(levels,function(lv,i)
@@ -77,13 +84,18 @@ function world_u()
     player.y=mid(4,player.y,123)
     physic()
 
+    if btnp(5) then
+        set_scene('team')
+        return
+    end
+
     local lv=get_colliding_level()
     if lv and btnp(🅾️) then
         local enemies={}
         for e in all(lv.enemy_team)do
             add(enemies,e.id)
         end
-        set_scene('battle',{enemy_team=enemies})
+        set_scene('battle',{enemy_team=enemies,onwin=lv.onwin})
         return
     end
 end
@@ -100,8 +112,17 @@ end
 
 function world_d()
     cls(13)
+    graphics()
+
+    d_ui_panel(1,116,126,11)
+    printl('party:'..team_names(active_team,true),4,119,nil,1,nil,{w=118})
+    printl('❎team',123,122,'r',1)
 
     printl('overworld',4,5,nil,1)
 
-    graphics()
+end
+
+function unlock_lv(n)
+    unlocked_levels=max(n,unlocked_levels)
+    store_data('unlocked_levels',unlocked_levels)
 end

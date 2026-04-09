@@ -1,18 +1,22 @@
 function battle_i(opts)
     opts=opts or {}
+    onwin=opts.onwin or function()end
     actions={
         {name='attack',spr=104},
         {name='block',spr=105},
         {name='heal',spr=106},
         {name='boost',spr=107}
     }
-    t1={
-        {t=1,e=new_character('elf',12,72),action=nil,target=nil},
-        {t=1,e=new_character('mas',27,77),action=nil,target=nil},
-        {t=1,e=new_character('dal',42,82),action=nil,target=nil},
-    }
+    t1={}
+    local ally_pos={{x=12,y=72},{x=27,y=77},{x=42,y=82}}
+    each(active_team or {'elf','mas','dal'},function(id,i)
+        local p=ally_pos[i]
+        if p then
+            add(t1,{t=1,e=new_character(id,p.x,p.y),action=nil,target=nil})
+        end
+    end)
+    t2={}
     if opts.enemy_team and #opts.enemy_team>0 then
-        t2={}
         local positions={{x=82,y=72},{x=97,y=77},{x=112,y=82}}
         each(opts.enemy_team,function(e_id,i)
             local p=positions[i]
@@ -39,8 +43,6 @@ function battle_i(opts)
 
     phase='pick_unit'
     msg='assign actions'
-
-    -- add_timer('transition', 1, function()end)
 end
 --MARK:Update
 function battle_u()
@@ -50,7 +52,10 @@ function battle_u()
     update_action_fx()
 
     if phase=='done' then
-        if(btnp(🅾️))set_scene('world')
+        if btnp(🅾️) then
+            onwin()
+            set_scene('world')
+        end
         return
     end
 
@@ -127,7 +132,6 @@ function battle_d()
         local selected=(phase=='pick_unit' or phase=='pick_action') and i==sel_i
         local target_selected=phase=='pick_target' and current_target_group()=='ally' and i==tar_i
         selected=selected or target_selected
-        -- local ox,oy=2,2+13*(i-1)
         local ox,oy=2,2+17*(i-1)
         local w,c=57,5
         if(selected)ox,c=ox+4,1
@@ -148,8 +152,6 @@ function battle_d()
     end)
 
     -- commands
-    rrectfill(1,97,126,30,2,1)
-    rrectfill(2,98,124,28,2,6)
 
     local sel_tm=t1[sel_i]
     local sel_e=sel_tm and sel_tm.e
@@ -159,11 +161,11 @@ function battle_d()
 
     if phase=='pick_unit' then
         if sel_e then
-            printl('select ally: '..sel_e.name,4,100,nil,1,nil,{w=118})
-            print_char_stats(sel_e)
+            d_stat_panel('select ally: '..sel_e.name,sel_e)
             printl('⬇️',sel_e.x,sel_e.y-13,'c',9,1)
         end
     elseif phase=='pick_action' then
+        d_ui_panel()
         each(actions,function(a,i)
             local c=i==action_i and 1 or 5
             local col=(i-1)%2
@@ -177,18 +179,20 @@ function battle_d()
     elseif phase=='pick_target' then
         if tar_e then
             if current_target_group()=='ally' then
-                printl('select ally: '..tar_e.name,4,100,nil,1,nil,{w=118})
+                d_stat_panel('select ally: '..tar_e.name,tar_e)
             else
-                printl('select target: '..tar_e.name,4,100,nil,1,nil,{w=118})
+                d_stat_panel('select target: '..tar_e.name,tar_e)
             end
-            print_char_stats(tar_e)
             printl('⬇️',tar_e.x,tar_e.y-13,'c',action_fx_color(actions[action_i]),1)
         else
+            d_ui_panel()
             printl('no target available',4,100,nil,1,nil,{w=118})
         end
     elseif phase=='execute' then
+        d_ui_panel()
         printl(msg,4,100,nil,1,nil,{w=118})
     elseif phase=='done' then
+        d_ui_panel()
         printl(msg,4,100,nil,1,nil,{w=118})
     end
 
@@ -788,6 +792,12 @@ function d_char_card(x,y,e,c)
     rrectfill(x+1,y+1,w-2,h-2,1,6)
     printl(e.name,x+2,y+5,nil,c)
     printl('hp:'..e.hp..' bk:'..e.block,x+2,y+12,nil,c)
+end
+
+function d_stat_panel(label,e)
+    d_ui_panel()
+    printl(label,4,100,nil,1,nil,{w=118})
+    print_char_stats(e)
 end
 
 function print_char_stats(e)
