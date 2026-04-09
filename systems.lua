@@ -9,10 +9,13 @@ function graphics()
 
     -- draw entities through shared rendering pipeline
     each(_entities, function(e)
-        if(e.shader)shade(e)
 
         if e.sprite and e.sprite.x and e.sprite.y then
+            -- if outline exists then draw it
             ssprc(e.sprite.x,e.sprite.y,e.w,e.w,e.x,e.y,e.w,e.w,false,e.sprite.o)
+            -- if shader exists then apply
+            if(e.shader)shade(e)
+            ssprc(e.sprite.x,e.sprite.y,e.w,e.w,e.x,e.y,e.w,e.w,false)
         elseif e.d then
             e.d(e)
         end

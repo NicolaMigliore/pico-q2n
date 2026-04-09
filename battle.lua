@@ -72,8 +72,10 @@ function battle_u()
             else
                 msg=onwin_msg or 'victory'
             end
+            sfx(6)
         else
             msg='defeat'
+            sfx(7)
         end
         return
     end
@@ -448,6 +450,7 @@ function do_next_action()
             exec_wait=false
             if atk_fx==fx then atk_fx=nil end
         end)
+        sfx(1)
     elseif action and action.name=='heal' and target_tm then
         local target=target_tm.e
         local he=(attacker.he or 0)+(step.boost_he or 0)
@@ -476,9 +479,11 @@ function do_next_action()
             exec_wait=false
             if atk_fx==fx then atk_fx=nil end
         end)
+        sfx(2)
     elseif action and action.name=='block' then
         attacker.block=max((attacker.bp or 0)+(step.boost_bp or 0),0)
         msg=attacker.name..' blocks'
+        sfx(3)
     elseif action and action.name=='boost' and target_tm then
         local target_name=target_tm.e and target_tm.e.name or 'target'
         local ta=target_tm.action and target_tm.action.name or nil
@@ -508,10 +513,14 @@ function do_next_action()
         exec_wait=true
         local fx=atk_fx
         add_timer('atk_anim',.5,function()
-            if fx and fx.e then refresh_actor_shader(fx.e) end
+            if fx and fx.e then
+                clear_shader(fx.e)
+                refresh_actor_shader(fx.e)
+            end
             exec_wait=false
             if atk_fx==fx then atk_fx=nil end
         end)
+        sfx(4)
     else
         msg=attacker.name..' uses '..(action and action.name or '...')
     end
@@ -758,7 +767,7 @@ function update_hit_flash()
         if flr(t.perc*8)%2==0 then
             set_flat_shader(atk_fx.e,10)
         else
-            clear_shader(atk_fx.e)
+            set_flat_shader(atk_fx.e,7)
         end
     else
         clear_shader(atk_fx.e)
@@ -777,7 +786,7 @@ end
 function refresh_actor_shader(e)
     if not e then return end
     if not e.sprite then return end
-    if e.block and e.block>=1 then
+    if e.block and e.block>0 then
         e.sprite.o=12
     else
         e.sprite.o=nil

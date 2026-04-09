@@ -28,6 +28,17 @@ Notes:
 - `0` means "empty / unset" for team slots.
 - When save data is missing, defaults are initialized on boot.
 
+## SFXs
+0. ui fx
+1. attack
+2. heal
+3. block
+4. boost
+5. death
+6. victory
+7. defeat
+
+
 # TODO
 - [] particle system
 - [] animate battle
