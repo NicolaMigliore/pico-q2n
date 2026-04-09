@@ -84,12 +84,12 @@ function printl(text,x,y,align,c,oc,opts)
     local lines = {}
 
     if max_w then
-        local raw_lines=split(text,'\n')
+        local raw_lines=split(text,'\n',false)
         for raw in all(raw_lines) do
             wrap_lines(lines,raw,max_w)
         end
     else
-        lines = split(text,'\n')
+        lines = split(text,'\n',false)
     end
 
     if vcenter==nil then vcenter=not max_w end
@@ -123,7 +123,7 @@ function wrap_lines(out,raw,max_w)
         return
     end
 
-    local words=split(raw,' ')
+    local words=split(raw,' ',false)
     local cur=''
     for w in all(words) do
         local cand=cur=='' and w or cur..' '..w

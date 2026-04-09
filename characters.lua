@@ -49,11 +49,53 @@ function characters_i()
             bp=1,
             he=1,
             bm=1,
-        }
+        },
+        kil={
+            id='kil',
+            name='kilia',
+            a={idle={{0,48},{16,48}}},
+            hp=6,
+            ap=1,
+            bp=1,
+            he=1,
+            bm=.5,
+        },
+        dar={
+            id='dar',
+            name='darkgreen',
+            a={idle={{32,48},{48,48}}},
+            hp=5,
+            ap=1,
+            bp=1.2,
+            he=1,
+            bm=.7,
+        },
+        man={
+            id='man',
+            name='manuagog',
+            a={idle={{96,32},{112,32}}},
+            hp=6,
+            ap=1,
+            bp=1,
+            he=1,
+            bm=.5,
+        },
+        min={
+            id='min',
+            name='minion',
+            a={idle={{96,48},{112,48}}},
+            hp=4,
+            ap=1,
+            bp=.5,
+            he=1,
+            bm=.5,
+        },
     }
 end
 
 function new_character(id,x,y,opts)
+    x=x or 0
+    y=y or 0
     opts=opts or {}
     local c=_characters[id]
     opts.id=c.id

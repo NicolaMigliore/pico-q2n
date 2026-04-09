@@ -104,7 +104,7 @@ function team_names(t,short)
     local names=''
     each(t,function(id,i)
         local n=short and id or _characters[id].name
-        names=names..(i>1 and ', ' or '')..n
+        names=names..(i>1 and ',' or '')..n
     end)
     if names=='' then return '-' end
     return names

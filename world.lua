@@ -1,31 +1,6 @@
 function world_i()
     player=new_character(active_team[1],20,50)
     player.collider=new_collider(8)
-    local all_levels={
-        {
-            x=25,y=30,
-            enemy_team={
-                new_character('dal',82,65),
-            },
-            onwin=function()
-                unlock_lv(2)
-            end
-        },
-        {
-            x=110,y=24,
-            enemy_team={
-                new_character('pos',82,65),
-            }
-        },
-        {
-            x=75,y=50,
-            enemy_team={
-                new_character('pos',82,65),
-                new_character('mas',97,70),
-                new_character('yun',97,70),
-            }
-        }
-    }
     levels={}
     for i=1,min(unlocked_levels or #all_levels,#all_levels) do
         add(levels,all_levels[i])
@@ -38,7 +13,7 @@ function world_i()
         for i,enemy in ipairs(lv.enemy_team)do
             local start_x=lv.x-((ec-1)*8)/2
             enemy.x=start_x+8*(i-1)
-            enemy.y=lv.y-8+rnd(10)
+            enemy.y=lv.y-14+rnd(10)
             enemy.ai=1
             enemy.as=0
             add(_entities,enemy)
@@ -48,18 +23,18 @@ function world_i()
             z=-1,
             s=nil,
             u=function(e)
-                e.w=e.collider.colliding==true and 16 or 8
+                e.w=e.collider.colliding==true and 18 or 8
                 e.collider.r=e.w
-                for enemy in all(lv.enemy_team) do
-                    if e.collider.colliding then clear_shader(enemy) else set_flat_shader(enemy,5) end
-                end
+                -- for enemy in all(lv.enemy_team) do
+                --     if e.collider.colliding then clear_shader(enemy) else set_flat_shader(enemy,1) end
+                -- end
             end,
             d=function(e)
-                local nc=(e.collider and e.collider.colliding) and 9 or 11
+                local nc=(e.collider and e.collider.colliding) and 9 or 1
                 circfill(e.x,e.y,e.w-2,nc)
                 circ(e.x,e.y,e.w,1)
                 printl(i,e.x,e.y-9,'c',1)
-                printl('lv:'..i,e.x,e.y+10,'c',5)
+                printl('lv:'..i,e.x,e.y+13,'c',1)
             end
         })
         node.sprite=nil
@@ -95,7 +70,7 @@ function world_u()
         for e in all(lv.enemy_team)do
             add(enemies,e.id)
         end
-        set_scene('battle',{enemy_team=enemies,onwin=lv.onwin})
+        set_scene('battle',{enemy_team=enemies,onwin=lv.onwin,onwin_msg=lv.onwin_msg})
         return
     end
 end
@@ -125,4 +100,8 @@ end
 function unlock_lv(n)
     unlocked_levels=max(n,unlocked_levels)
     store_data('unlocked_levels',unlocked_levels)
+end
+function unlock_party(n)
+    max_team_size=max(n,max_team_size)
+    store_data('max_team_size',max_team_size)
 end

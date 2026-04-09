@@ -1,11 +1,43 @@
 -- main
 function _init()
     _timers = {}
-    init_save()
     characters_i()
+    init_save()
+    init_menu()
+
+    -- levels
+    all_levels={
+        {
+            x=25,y=30,
+            enemy_team={
+                new_character('min'),
+            },
+            onwin=function()unlock_lv(2)end,
+            onwin_msg='victory!\nlevel 2 unlocked'
+        },
+        {
+            x=110,y=24,
+            enemy_team={
+                new_character('min'),
+                new_character('min'),
+            },
+            onwin=function()unlock_lv(3)unlock_party(2)end,
+            onwin_msg='victory!\nlevel 3 unlocked\nparty size +1'
+        },
+        {
+            x=75,y=50,
+            enemy_team={
+                new_character('min',82,65),
+                new_character('min',97,70),
+                new_character('min',97,70),
+            },
+            onwin=function()unlock_lv(3)end,
+            onwin_msg='victory!\nlevel 3 unlocked'
+        }
+    }
 
     -- team
-    roster_ids={'elf','mas','dal','pos','yun','kil','man'}
+    roster_ids={'elf','mas','dal','pos','yun','kil','dar','man'}
     max_team_size=load_data('max_team_size')
     if max_team_size==nil then
         max_team_size=1
@@ -39,7 +71,6 @@ function _init()
 	}
 	cur_scene=_scenes.test
 	set_scene('world')
-	-- set_scene('test')
 
 	pts=0
 	deb=nil
@@ -164,4 +195,41 @@ function load_data(k)
         if i3>0 and roster_ids[i3] then add(ids,roster_ids[i3]) end
         return ids
     end
+end
+
+function init_menu()
+    menuitem(1,'reset save',function()
+        clear_saved_data()
+        set_scene('world')
+        return false
+    end)
+    menuitem(2,'unlock all',function()
+        unlock_all_features()
+        set_scene('world')
+        return false
+    end)
+end
+
+function clear_saved_data()
+    for i=0,5 do
+        dset(i,0)
+    end
+    max_team_size=1
+    unlocked_chars=2
+    unlocked_levels=1
+    active_team={roster_ids[1]}
+end
+
+function unlock_all_features()
+    max_team_size=3
+    unlocked_chars=#roster_ids
+    unlocked_levels=#all_levels
+    active_team={}
+    for i=1,min(max_team_size,#roster_ids) do
+        add(active_team,roster_ids[i])
+    end
+    store_data('max_team_size',max_team_size)
+    store_data('unlocked_chars',unlocked_chars)
+    store_data('unlocked_levels',unlocked_levels)
+    store_data('active_team',active_team)
 end

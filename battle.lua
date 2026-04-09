@@ -1,6 +1,7 @@
 function battle_i(opts)
     opts=opts or {}
     onwin=opts.onwin or function()end
+    onwin_msg=opts.onwin_msg
     actions={
         {name='attack',spr=104},
         {name='block',spr=105},
@@ -40,6 +41,7 @@ function battle_i(opts)
     exec_wait=false
     atk_fx=nil
     assign_i=1
+    battle_rewarded=false
 
     phase='pick_unit'
     msg='assign actions'
@@ -53,19 +55,31 @@ function battle_u()
 
     if phase=='done' then
         if btnp(🅾️) then
-            onwin()
             set_scene('world')
         end
         return
     end
 
     if is_battle_over() then
+        if #t2==0 and not battle_rewarded then
+            onwin()
+            battle_rewarded=true
+        end
         phase='done'
-        msg=#t2==0 and 'victory' or 'defeat'
+        if #t2==0 then
+            if type(onwin_msg)=='function' then
+                msg=onwin_msg() or 'victory'
+            else
+                msg=onwin_msg or 'victory'
+            end
+        else
+            msg='defeat'
+        end
         return
     end
 
     if phase=='pick_unit' then
+        if(#t1==1)sel_i=1 phase='pick_action' return
         if(btnp(⬇️))sel_i=find_unassigned(sel_i,1)
         if(btnp(⬆️))sel_i=find_unassigned(sel_i,-1)
         if(btnp(❎))step_back_order()
@@ -171,10 +185,10 @@ function battle_d()
             local col=(i-1)%2
             local row=flr((i-1)/2)
             local ox=6+60*col
-            local oy=107+9*row
+            local oy=107+10*row
 
             sprc(a.spr,ox+4,oy,action_fx_color(a))
-            printl(a.name,ox+11,oy+2,nil,c)
+            printl(a.name,ox+11,oy,nil,c)
         end)
     elseif phase=='pick_target' then
         if tar_e then
