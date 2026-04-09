@@ -2,22 +2,24 @@ function world_i()
     player=new_character(active_team[1],20,50)
     player.collider=new_collider(8)
     levels={}
-    for i=1,min(unlocked_levels or #all_levels,#all_levels) do
-        add(levels,all_levels[i])
-    end
+    each(all_levels,function(lv,i)
+        if i<=min(unlocked_levels or #all_levels,#all_levels) then
+            add(levels,lv)
+        end
+    end)
 
     _entities={player}
     each(levels,function(lv,i)
         local ec=#lv.enemy_team
 
-        for i,enemy in ipairs(lv.enemy_team)do
+        each(lv.enemy_team,function(enemy,i)
             local start_x=lv.x-((ec-1)*8)/2
             enemy.x=start_x+8*(i-1)
             enemy.y=lv.y-14+rnd(10)
             enemy.ai=1
             enemy.as=0
             add(_entities,enemy)
-        end
+        end)
 
         local node=new_ent(lv.x,lv.y,8,{
             z=-1,

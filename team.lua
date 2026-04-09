@@ -1,8 +1,10 @@
 function team_i()
     team_roster={}
-    for i=1,min(unlocked_chars or #roster_ids,#roster_ids) do
-        add(team_roster,roster_ids[i])
-    end
+    each(roster_ids,function(id,i)
+        if i<=min(unlocked_chars or #roster_ids,#roster_ids) then
+            add(team_roster,id)
+        end
+    end)
     team_view_n=4
     team_top_i=1
     team_sel_i=1
@@ -57,8 +59,7 @@ function team_d()
     camera(0,sy)
     graphics()
 
-    for i=1,#team_roster do
-        local id=team_roster[i]
+    each(team_roster,function(id,i)
         local c=_characters[id]
         local x,y=25,16+18*(i-1)
         local sel=i==team_sel_i
@@ -71,7 +72,7 @@ function team_d()
             circfill(x+48,y+7,3,card_c)
         end
         circ(x+48,y+7,5,card_c)
-    end
+    end)
     camera()
     clip()
 

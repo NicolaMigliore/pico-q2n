@@ -26,12 +26,12 @@ function battle_i(opts)
         end)
     end
     _entities={}
-    for tm in all(t1) do
+    each(t1,function(tm)
         add(_entities,tm.e)
-    end
-    for tm in all(t2) do
+    end)
+    each(t2,function(tm)
         add(_entities,tm.e)
-    end
+    end)
 
     sel_i=1
     action_i=1
