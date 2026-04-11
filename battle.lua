@@ -18,7 +18,7 @@ function battle_i(opts)
     end)
     t2={}
     if opts.enemy_team and #opts.enemy_team>0 then
-        local positions={{x=82,y=72},{x=97,y=77},{x=112,y=82}}
+        local positions={{x=83,y=20},{x=98,y=25},{x=113,y=30}}
         each(opts.enemy_team,function(e_id,i)
             local p=positions[i]
             local ne=new_character(e_id,p.x,p.y,{})
@@ -136,35 +136,48 @@ function battle_d()
     ovalfill(1,70,55,95,3)
     ovalfill(3,72,53,93,11)
 
-    ovalfill(71,70,125,95,3)
-    ovalfill(73,72,123,93,11)
+    ovalfill(72,18,126,43,3)
+    ovalfill(74,20,124,41,11)
 
     graphics()
 
 
     -- ui
+    local gap=1
+    local total_h=0
+    each(t1,function(tm,i)
+        local selected=(phase=='pick_unit' or phase=='pick_action') and i==sel_i
+        local target_selected=phase=='pick_target' and current_target_group()=='ally' and i==tar_i
+        if selected or target_selected then
+            total_h+=16
+        else
+            total_h+=11
+        end
+    end)
+    total_h+=max(#t1-1,0)*gap
+    local y=96-total_h
     each(t1,function(tm,i)
         local e=tm.e
         local selected=(phase=='pick_unit' or phase=='pick_action') and i==sel_i
         local target_selected=phase=='pick_target' and current_target_group()=='ally' and i==tar_i
         selected=selected or target_selected
-        local ox,oy=2,2+17*(i-1)
-        local w,c=57,5
-        if(selected)ox,c=ox+4,1
+        local ox,oy=127-57-1,y
+        local c=5
+        if(selected)ox,c=ox-4,1
 
-        d_char_card(ox,oy,e,c)
-        if(tm.action)sprc(tm.action.spr,ox+w-6,oy+9,action_fx_color(tm.action))
-        -- if(tm.action)pal(5,1)sprc(tm.action.spr,e.x-3,e.y+8,action_fx_color(tm.action))pal()
+        d_char_card(ox,oy,e,c,selected,tm.action)
+        y+=char_card_h(selected)+gap
     end)
 
+    y=2
     each(t2,function(tm,i)
         local e=tm.e
         local selected=phase=='pick_target' and current_target_group()=='enemy' and i==tar_i
-        local w,c=57,5
-        local ox,oy=127-w-1,2+17*(i-1)
-        if(selected)ox,c=ox-4,1
-        d_char_card(ox,oy,e,c)
-        if(tm.action)sprc(tm.action.spr,ox+w-6,oy+9,action_fx_color(tm.action))
+        local c=5
+        local ox,oy=2,y
+        if(selected)ox,c=ox+4,1
+        d_char_card(ox,oy,e,c,selected,tm.action)
+        y+=char_card_h(selected)+gap
     end)
 
     -- commands
@@ -808,13 +821,23 @@ function apply_block(target,dmg)
     return dmg-absorbed
 end
 
-function d_char_card(x,y,e,c)
-    local w,h=57,16
+function char_card_h(full)
+    return full and 16 or 11
+end
+
+function d_char_card(x,y,e,c,full,a)
+    local w,h=57,char_card_h(full)
 
     rrectfill(x,y,w,h,1,c)
     rrectfill(x+1,y+1,w-2,h-2,1,6)
-    printl(e.name,x+2,y+5,nil,c)
-    printl('hp:'..e.hp..' bk:'..e.block,x+2,y+12,nil,c)
+    if full then
+        printl(e.name,x+2,y+5,nil,c)
+        printl('hp:'..e.hp..' bk:'..e.block,x+2,y+12,nil,c)
+        if(a)sprc(a.spr,x+w-6,y+9,action_fx_color(a))
+    else
+        printl(e.sn..' '..e.hp..'/'..e.max_hp,x+2,y+6,nil,c)
+        if(a)sprc(a.spr,x+w-6,y+7,action_fx_color(a))
+    end
 end
 
 function d_stat_panel(label,e)
@@ -825,17 +848,28 @@ end
 
 function print_char_stats(e)
     local stats={
-        {k='ap',l='atk pwr'},
-        {k='bp',l='block'},
-        {k='he',l='heal'},
-        {k='bm',l='boost'}
+        {k='hp',l='hp'},
+        {k='ap',l='atk'},
+        {k='bp',l='blk'},
+        {k='block',l='sh'},
+        {k='he',l='hea'},
+        {k='bm',l='bst'}
     }
     each(stats,function(s,i)
-        local col=(i-1)%2
-        local row=flr((i-1)/2)
-        local ox=60*col
+        local col=(i-1)%3
+        local row=flr((i-1)/3)
+        local ox=40*col
         local oy=111+9*row
         local l=s.l..':'..e[s.k]
-        printl(l,ox+11,oy+2,nil,1)
+        if(s.k=='hp')l=s.l..':'..e[s.k]..'/'..e.max_hp
+        printl(l,ox+4,oy+2,nil,1)
     end)
+    -- each(stats,function(s,i)
+    --     local col=(i-1)%2
+    --     local row=flr((i-1)/2)
+    --     local ox=60*col
+    --     local oy=111+9*row
+    --     local l=s.l..':'..e[s.k]
+    --     printl(l,ox+11,oy+2,nil,1)
+    -- end)
 end

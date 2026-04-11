@@ -20,6 +20,7 @@ function new_actor(x,y,opts)
 		-- identity
 		id=opts.id,
 		name=opts.name,
+		sn=opts.sn,		-- short name
 
 		-- world/visual
 		x=x,y=y,w=16,

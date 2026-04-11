@@ -51,10 +51,10 @@ function world_u()
     animation()
 
     -- basic free movement
-    if(btn(⬅️))player.x-=1
-    if(btn(➡️))player.x+=1
-    if(btn(⬆️))player.y-=1
-    if(btn(⬇️))player.y+=1
+    if(btn(⬅️))player.x-=2
+    if(btn(➡️))player.x+=2
+    if(btn(⬆️))player.y-=2
+    if(btn(⬇️))player.y+=2
 
     -- screen bounds
     player.x=mid(4,player.x,123)

@@ -33,6 +33,16 @@ function _init()
             },
             onwin=function()unlock_lv(3)end,
             onwin_msg='victory!\nlevel 3 unlocked'
+        },
+        {
+            x=95,y=100,
+            enemy_team={
+                new_character('pos',82,65),
+                new_character('yun',97,70),
+                new_character('dar',97,70),
+            },
+            onwin=function()unlock_lv(3)end,
+            onwin_msg='victory!\nlevel 3 unlocked'
         }
     }
 
