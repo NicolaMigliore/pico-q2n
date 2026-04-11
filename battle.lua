@@ -1,37 +1,33 @@
+--MARK:Init
 function battle_i(opts)
     opts=opts or {}
     onwin=opts.onwin or function()end
     onwin_msg=opts.onwin_msg
+    -- phase: pu=pick unit pa=pick action pt=pick target ex=execute dn=done
+    pu,pa,pt,ex,dn='pu','pa','pt','ex','dn'
     actions={
-        {name='attack',spr=104},
-        {name='block',spr=105},
-        {name='heal',spr=106},
-        {name='boost',spr=107}
+        {name='attack',spr=104,t='enemy',c=8,p=4,k='ap',bk='atk'},
+        {name='block',spr=105,c=12,p=2,k='bp',bk='block'},
+        {name='heal',spr=106,t='ally',c=11,p=3,k='he',bk='heal'},
+        {name='boost',spr=107,t='ally',c=10,p=1}
     }
+    _entities={}
     t1={}
-    local ally_pos={{x=12,y=72},{x=27,y=77},{x=42,y=82}}
     each(active_team or {'elf','mas','dal'},function(id,i)
-        local p=ally_pos[i]
-        if p then
-            add(t1,{t=1,e=new_character(id,p.x,p.y),action=nil,target=nil})
+        if i<=3 then
+            local e=new_character(id,12+15*(i-1),72+5*(i-1))
+            add(t1,{t=1,e=e,action=nil,target=nil})
+            add(_entities,e)
         end
     end)
     t2={}
     if opts.enemy_team and #opts.enemy_team>0 then
-        local positions={{x=83,y=20},{x=98,y=25},{x=113,y=30}}
         each(opts.enemy_team,function(e_id,i)
-            local p=positions[i]
-            local ne=new_character(e_id,p.x,p.y,{})
+            local ne=new_character(e_id,83+15*(i-1),20+5*(i-1),{})
             add(t2,{t=2,e=ne,action=nil,target=nil})
+            add(_entities,ne)
         end)
     end
-    _entities={}
-    each(t1,function(tm)
-        add(_entities,tm.e)
-    end)
-    each(t2,function(tm)
-        add(_entities,tm.e)
-    end)
 
     sel_i=1
     action_i=1
@@ -43,17 +39,23 @@ function battle_i(opts)
     assign_i=1
     battle_rewarded=false
 
-    phase='pick_unit'
+    phase=pu
     msg='assign actions'
 end
 --MARK:Update
 function battle_u()
     animation()
     cleanup_dead()
-    apply_status_shaders()
+    -- keep block tint in sync on all living actors
+    each(t1,function(tm)
+        refresh_actor_shader(tm.e)
+    end)
+    each(t2,function(tm)
+        refresh_actor_shader(tm.e)
+    end)
     update_action_fx()
 
-    if phase=='done' then
+    if phase==dn then
         if btnp(🅾️) then
             set_scene('world')
         end
@@ -65,7 +67,7 @@ function battle_u()
             onwin()
             battle_rewarded=true
         end
-        phase='done'
+        phase=dn
         if #t2==0 then
             if type(onwin_msg)=='function' then
                 msg=onwin_msg() or 'victory'
@@ -80,24 +82,24 @@ function battle_u()
         return
     end
 
-    if phase=='pick_unit' then
-        if(#t1==1)sel_i=1 phase='pick_action' return
+    if phase==pu then
+        if(#t1==1)sel_i=1 phase=pa return
         if(btnp(⬇️))sel_i=find_unassigned(sel_i,1)
         if(btnp(⬆️))sel_i=find_unassigned(sel_i,-1)
         if(btnp(❎))step_back_order()
-        if(btnp(🅾️) and t1[sel_i] and not t1[sel_i].action)phase='pick_action'
+        if(btnp(🅾️) and t1[sel_i] and not t1[sel_i].action)phase=pa
 
-    elseif phase=='pick_action' then
+    elseif phase==pa then
         if(btnp(⬅️))action_i=move_action_sel(-1,0)
         if(btnp(➡️))action_i=move_action_sel(1,0)
         if(btnp(⬆️))action_i=move_action_sel(0,-1)
         if(btnp(⬇️))action_i=move_action_sel(0,1)
 
-        if(btnp(❎))phase='pick_unit'
+        if(btnp(❎))phase=pu
         if(btnp(🅾️)) then
-            if action_requires_target(actions[action_i]) then
+            if actions[action_i].t then
                 tar_i=1
-                phase='pick_target'
+                phase=pt
             else
                 local tm=t1[sel_i]
                 tm.action=actions[action_i]
@@ -106,16 +108,16 @@ function battle_u()
             end
         end
 
-    elseif phase=='pick_target' then
+    elseif phase==pt then
         local targets=current_targets()
         if #targets<=0 then
             msg='no targets'
-            phase='pick_action'
+            phase=pa
             return
         end
         if(btnp(⬇️))tar_i=min(tar_i+1,#targets)
         if(btnp(⬆️))tar_i=max(tar_i-1,1)
-        if(btnp(❎))phase='pick_action'
+        if(btnp(❎))phase=pa
         if(btnp(🅾️)) then
             local tm=t1[sel_i]
             tm.action=actions[action_i]
@@ -123,7 +125,7 @@ function battle_u()
             commit_order()
         end
 
-    elseif phase=='execute' then
+    elseif phase==ex then
         if exec_wait then return end
         if(btnp(🅾️))do_next_action()
     end
@@ -146,9 +148,7 @@ function battle_d()
     local gap=1
     local total_h=0
     each(t1,function(tm,i)
-        local selected=(phase=='pick_unit' or phase=='pick_action') and i==sel_i
-        local target_selected=phase=='pick_target' and current_target_group()=='ally' and i==tar_i
-        if selected or target_selected then
+        if card_sel(i,'ally') then
             total_h+=16
         else
             total_h+=11
@@ -158,9 +158,7 @@ function battle_d()
     local y=96-total_h
     each(t1,function(tm,i)
         local e=tm.e
-        local selected=(phase=='pick_unit' or phase=='pick_action') and i==sel_i
-        local target_selected=phase=='pick_target' and current_target_group()=='ally' and i==tar_i
-        selected=selected or target_selected
+        local selected=card_sel(i,'ally')
         local ox,oy=127-57-1,y
         local c=5
         if(selected)ox,c=ox-4,1
@@ -172,7 +170,7 @@ function battle_d()
     y=2
     each(t2,function(tm,i)
         local e=tm.e
-        local selected=phase=='pick_target' and current_target_group()=='enemy' and i==tar_i
+        local selected=card_sel(i,'enemy')
         local c=5
         local ox,oy=2,y
         if(selected)ox,c=ox+4,1
@@ -188,12 +186,12 @@ function battle_d()
     local target_tm=targets and targets[tar_i]
     local tar_e=target_tm and target_tm.e
 
-    if phase=='pick_unit' then
+    if phase==pu then
         if sel_e then
             d_stat_panel('select ally: '..sel_e.name,sel_e)
             printl('⬇️',sel_e.x,sel_e.y-13,'c',9,1)
         end
-    elseif phase=='pick_action' then
+    elseif phase==pa then
         d_ui_panel()
         each(actions,function(a,i)
             local c=i==action_i and 1 or 5
@@ -202,70 +200,40 @@ function battle_d()
             local ox=6+60*col
             local oy=107+10*row
 
-            sprc(a.spr,ox+4,oy,action_fx_color(a))
+            sprc(a.spr,ox+4,oy,a.c)
             printl(a.name,ox+11,oy,nil,c)
         end)
-    elseif phase=='pick_target' then
+    elseif phase==pt then
         if tar_e then
-            if current_target_group()=='ally' then
+            if actions[action_i].t=='ally' then
                 d_stat_panel('select ally: '..tar_e.name,tar_e)
             else
                 d_stat_panel('select target: '..tar_e.name,tar_e)
             end
-            printl('⬇️',tar_e.x,tar_e.y-13,'c',action_fx_color(actions[action_i]),1)
+            printl('⬇️',tar_e.x,tar_e.y-13,'c',actions[action_i].c,1)
         else
             d_ui_panel()
             printl('no target available',4,100,nil,1,nil,{w=118})
         end
-    elseif phase=='execute' then
+    elseif phase==ex then
         d_ui_panel()
         printl(msg,4,100,nil,1,nil,{w=118})
-    elseif phase=='done' then
+    elseif phase==dn then
         d_ui_panel()
         printl(msg,4,100,nil,1,nil,{w=118})
     end
 
-    draw_o_prompt()
+    if(flash>.2)printl('🅾️',124,120,'r',9,1)
     draw_attack_fx()
 end
 
-function draw_o_prompt()
-    if phase=='pick_unit' or phase=='pick_action' or phase=='pick_target' or phase=='execute' or phase=='done' then
-        if(flash>.2)printl('🅾️',124,120,'r',9,1)
-    end
-end
-
-function action_requires_target(a)
-    return a and (a.name=='attack' or a.name=='heal' or a.name=='boost')
-end
-
-function action_fx_color(a)
-    local n=a and a.name
-    if n=='attack' then return 8 end
-    if n=='heal' then return 11 end
-    if n=='boost' then return 10 end
-    if n=='block' then return 12 end
-    return 7
-end
-
-function action_priority(a)
-    local n=a and a.name
-    if n=='boost' then return 1 end
-    if n=='block' then return 2 end
-    if n=='heal' then return 3 end
-    if n=='attack' then return 4 end
-    return 99
-end
-
-function current_target_group()
-    local a=actions[action_i]
-    if a and (a.name=='heal' or a.name=='boost') then return 'ally' end
-    return 'enemy'
+function card_sel(i,t)
+    return ((phase==pu or phase==pa) and t=='ally' and i==sel_i)
+        or (phase==pt and actions[action_i].t==t and i==tar_i)
 end
 
 function current_targets()
-    if current_target_group()=='ally' then return t1 end
-    return t2
+    return actions[action_i].t=='ally' and t1 or t2
 end
 
 function move_action_sel(dx,dy)
@@ -291,11 +259,12 @@ function commit_order()
         assign_i+=1
     end
 
-    if all_orders_assigned() then
+    if assigned_count()==#t1 then
         start_execute_phase()
     else
-        sel_i=next_unassigned(sel_i)
-        phase='pick_unit'
+        -- jump to the next ally without an assigned action
+        sel_i=find_unassigned(sel_i,1)
+        phase=pu
         msg='assigned '..assigned_count()..'/'..#t1
     end
 end
@@ -306,14 +275,6 @@ function assigned_count()
         if tm.action then c+=1 end
     end
     return c
-end
-
-function all_orders_assigned()
-    return assigned_count()==#t1
-end
-
-function next_unassigned(from_i)
-    return find_unassigned(from_i,1)
 end
 
 function find_unassigned(from_i,dir)
@@ -351,7 +312,7 @@ function step_back_order()
     tm.target=nil
     tm.order=nil
     sel_i=i
-    phase='pick_action'
+    phase=pa
     msg='editing '..tm.e.name
 end
 
@@ -394,14 +355,14 @@ function start_execute_phase()
         add(exec_order,tm)
     end
     sort(exec_order,function(a,b)
-        local pa,pb=action_priority(a.action),action_priority(b.action)
+        local pa,pb=a.action.p or 99,b.action.p or 99
         if pa==pb then
             return (a.order or 999)>(b.order or 999)
         end
         return pa>pb
     end)
     exec_i=1
-    phase='execute'
+    phase=ex
     msg='executing...'
 end
 
@@ -409,7 +370,7 @@ function do_next_action()
     local step=exec_order[exec_i]
     if not step then
         reset_orders()
-        phase='pick_unit'
+        phase=pu
         sel_i=1
         msg='turn complete'
         return
@@ -418,7 +379,7 @@ function do_next_action()
     local attacker=step.e
     local target_tm=step.target
     local action=step.action
-    local needs_target=action and action_requires_target(action)
+    local needs_target=action and action.t
 
     if not is_valid_actor_tm(step) then
         msg=attacker.name..' is down'
@@ -550,9 +511,9 @@ function auto_plan_enemy_orders()
         tm.order=assign_i
         assign_i+=1
 
-        if action_requires_target(a) then
+        if a.t then
             local targets=targets_for_team_action(tm.t,a)
-            if #targets>0 then tm.target=pick_weighted_target(tm,a.name,targets) end
+            if #targets>0 then tm.target=pick_weighted_target(tm,a,targets) end
         end
     end
 end
@@ -620,20 +581,20 @@ function pick_weighted_target(src_tm,a,targets)
         local w=1
         local e=tm.e
 
-        if a=='attack' then
+        if a.name=='attack' then
             w+=max(6-(e.hp or 0),0)
             w+=max((e.ap or 0)-1,0)
             w+=max((e.he or 0)-1,0)
-        elseif a=='heal' then
+        elseif a.name=='heal' then
             w+=max(6-(e.hp or 0),0)*2
-        elseif a=='boost' then
+        elseif a.name=='boost' then
             if tm==src_tm then
                 w=0
             elseif tm.action then
-                local ta=tm.action.name
-                if ta=='attack' then w+=(e.ap or 0)*2
-                elseif ta=='heal' then w+=(e.he or 0)*2
-                elseif ta=='block' then w+=(e.bp or 0)*2
+                local ta=tm.action
+                if ta and ta.k=='ap' then w+=(e.ap or 0)*2
+                elseif ta and ta.k=='he' then w+=(e.he or 0)*2
+                elseif ta and ta.k=='bp' then w+=(e.bp or 0)*2
                 else w=0 end
             else
                 w=0
@@ -672,24 +633,15 @@ function count_boostable_allies(src_tm)
     local team=src_tm.t==1 and t1 or t2
     local c=0
     for tm in all(team) do
-        if tm!=src_tm and tm.action then
-            local n=tm.action.name
-            if n=='attack' or n=='heal' or n=='block' then
-                c+=1
-            end
-        end
+        if tm!=src_tm and tm.action and tm.action.k then c+=1 end
     end
     return c
 end
 
 function targets_for_team_action(team_id,a)
-    local n=a and a.name
-    if n=='attack' then
-        return team_id==1 and t2 or t1
-    elseif n=='heal' or n=='boost' then
-        return team_id==1 and t1 or t2
-    end
-    return {}
+    if not a or not a.t then return {} end
+    if a.t=='enemy' then return team_id==1 and t2 or t1 end
+    return team_id==1 and t1 or t2
 end
 
 function shuffled_team(team)
@@ -717,19 +669,22 @@ function is_battle_over()
     return #t1<=0 or #t2<=0
 end
 
-function cleanup_dead_team(team)
-    for i=#team,1,-1 do
-        local tm=team[i]
+function cleanup_dead()
+    -- remove defeated actors from both teams and the render list
+    for i=#t1,1,-1 do
+        local tm=t1[i]
         if tm.e.hp<=0 then
             del(_entities,tm.e)
-            deli(team,i)
+            deli(t1,i)
         end
     end
-end
-
-function cleanup_dead()
-    cleanup_dead_team(t1)
-    cleanup_dead_team(t2)
+    for i=#t2,1,-1 do
+        local tm=t2[i]
+        if tm.e.hp<=0 then
+            del(_entities,tm.e)
+            deli(t2,i)
+        end
+    end
 
     sel_i=mid(1,sel_i,max(#t1,1))
     local targets=current_targets()
@@ -743,27 +698,8 @@ function update_action_fx()
         local hp=atk_fx.hp0+(atk_fx.hp1-atk_fx.hp0)*t.perc
         atk_fx.e.hp=flr(hp+0.5)
     end
-    update_hit_flash()
-end
-
-function draw_attack_fx()
-    local t=get_timer('atk_anim')
-    if not atk_fx or not t or t.done then return end
-    if atk_fx.e and atk_fx.mode!='boost' then
-        -- local max_hp=max(atk_fx.e.max_hp or 1,1)
-        bar(atk_fx.e.x-8,atk_fx.e.y-14,16,min(atk_fx.e.hp/atk_fx.e.max_hp,1),12)
-    end
-    if atk_fx.text and atk_fx.sx and atk_fx.sy and atk_fx.dx and atk_fx.dy then
-        anim_text(atk_fx.text,atk_fx.sx,atk_fx.sy,atk_fx.dx,atk_fx.dy,t.perc,'c',atk_fx.c or 8,1)
-    end
-end
-
-function update_hit_flash()
-    local t=get_timer('atk_anim')
-    if not atk_fx or not t or t.done then return end
-    if not atk_fx.e then return end
-
     -- rapid flash while anim is active
+    if not atk_fx.e then return end
     if atk_fx.mode=='attack' then
         if flr(t.perc*10)%2==0 then
             set_flat_shader(atk_fx.e,8)
@@ -787,13 +723,16 @@ function update_hit_flash()
     end
 end
 
-function apply_status_shaders()
-    each(t1,function(tm)
-        refresh_actor_shader(tm.e)
-    end)
-    each(t2,function(tm)
-        refresh_actor_shader(tm.e)
-    end)
+function draw_attack_fx()
+    local t=get_timer('atk_anim')
+    if not atk_fx or not t or t.done then return end
+    if atk_fx.e and atk_fx.mode!='boost' then
+        -- local max_hp=max(atk_fx.e.max_hp or 1,1)
+        bar(atk_fx.e.x-8,atk_fx.e.y-14,16,min(atk_fx.e.hp/atk_fx.e.max_hp,1),12)
+    end
+    if atk_fx.text and atk_fx.sx and atk_fx.sy and atk_fx.dx and atk_fx.dy then
+        anim_text(atk_fx.text,atk_fx.sx,atk_fx.sy,atk_fx.dx,atk_fx.dy,t.perc,'c',atk_fx.c or 8,1)
+    end
 end
 
 function refresh_actor_shader(e)
@@ -833,10 +772,10 @@ function d_char_card(x,y,e,c,full,a)
     if full then
         printl(e.name,x+2,y+5,nil,c)
         printl('hp:'..e.hp..' bk:'..e.block,x+2,y+12,nil,c)
-        if(a)sprc(a.spr,x+w-6,y+9,action_fx_color(a))
+        if(a)sprc(a.spr,x+w-6,y+9,a.c)
     else
         printl(e.sn..' '..e.hp..'/'..e.max_hp,x+2,y+6,nil,c)
-        if(a)sprc(a.spr,x+w-6,y+7,action_fx_color(a))
+        if(a)sprc(a.spr,x+w-6,y+7,a.c)
     end
 end
 
@@ -864,12 +803,4 @@ function print_char_stats(e)
         if(s.k=='hp')l=s.l..':'..e[s.k]..'/'..e.max_hp
         printl(l,ox+4,oy+2,nil,1)
     end)
-    -- each(stats,function(s,i)
-    --     local col=(i-1)%2
-    --     local row=flr((i-1)/2)
-    --     local ox=60*col
-    --     local oy=111+9*row
-    --     local l=s.l..':'..e[s.k]
-    --     printl(l,ox+11,oy+2,nil,1)
-    -- end)
 end

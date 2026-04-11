@@ -60,14 +60,13 @@ function team_d()
     graphics()
 
     each(team_roster,function(id,i)
-        local c=_characters[id]
+        local e=_entities[i]
         local x,y=25,16+18*(i-1)
         local sel=i==team_sel_i
         local in_team=find(team_pick,id)
         local card_c=sel and 1 or 5
-        local card={name=c.name,hp=c.hp,block=0}
 
-        d_char_card(x,y,card,card_c)
+        d_char_card(x,y,e,card_c,1)
         if in_team then
             circfill(x+48,y+7,3,card_c)
         end
@@ -83,10 +82,9 @@ function team_d()
         if(flash>.2)printl('⬇️',64,91,'c',9,1)
     end
 
-    local id=team_roster[team_sel_i]
-    local c=_characters[id]
-    if c then
-        d_stat_panel(c.name,c)
+    local e=_entities[team_sel_i]
+    if e then
+        d_stat_panel(e.name,e)
         -- printl(team_msg,123,100,'r',1)
     end
 end
