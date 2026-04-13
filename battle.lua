@@ -425,6 +425,9 @@ function do_next_action()
             if atk_fx==fx then atk_fx=nil end
         end)
         sfx(1)
+        for i=1,4+rnd(5)do
+            add_particle(target.x,target.y+4,10+rnd(10),rnd(2)-1,-.8-rnd(.8),true,false,false,1,{2,8,7})
+        end
     elseif action and action.name=='heal' and target_tm then
         local target=target_tm.e
         local he=(attacker.he or 0)+(step.boost_he or 0)
@@ -452,28 +455,56 @@ function do_next_action()
             end
             exec_wait=false
             if atk_fx==fx then atk_fx=nil end
+            for i=1,4+rnd(5)do
+                add_particle(target.x,target.y+4,10+rnd(10),rnd(2)-1,-.8-rnd(.8),true,false,false,1,{3,11,7})
+            end
         end)
         sfx(2)
+        for i=1,15 do
+            local dest_x,dest_y=target.x,target.y
+            local die=11+rnd(5)
+            local a=rnd(1)
+            local dist=8+rnd(6)
+            local x=dest_x+cos(a)*dist
+            local y=dest_y+sin(a)*dist
+            local dx=(dest_x-x)/die
+            local dy=(dest_y-y)/die
+
+            add_particle(x,y,die,dx,dy,false,false,true,1+rnd(),{3,11,7})
+        end
     elseif action and action.name=='block' then
         attacker.block=max((attacker.bp or 0)+(step.boost_bp or 0),0)
         msg=attacker.name..' blocks'
         sfx(3)
+        for i=1,15 do
+            local dest_x,dest_y=attacker.x,attacker.y
+            local die=10+rnd(10)
+            local a=rnd(1)
+            local dist=8+rnd(6)
+            local x=dest_x+cos(a)*dist
+            local y=dest_y+sin(a)*dist
+            local dx=(dest_x-x)/die
+            local dy=(dest_y-y)/die
+
+            add_particle(x,y,die,dx,dy,false,false,true,2+rnd(),{1,12,7})
+        end
     elseif action and action.name=='boost' and target_tm then
-        local target_name=target_tm.e and target_tm.e.name or 'target'
+        local target=target_tm.e
+        local target_name=target and target.name or 'target'
         local ta=target_tm.action and target_tm.action.name or nil
         local bm=attacker.bm or 0
         if ta=='attack' then
-            local base=target_tm.e.ap or 0
+            local base=target.ap or 0
             local bonus=base*bm
             msg=attacker.name..' boosts '..target_name..' atk='..base+target_tm.boost_ap..'+'..bonus
             target_tm.boost_ap=(target_tm.boost_ap or 0)+bonus
         elseif ta=='heal' then
-            local base=target_tm.e.he or 0
+            local base=target.he or 0
             local bonus=base*bm
             msg=attacker.name..' boosts '..target_name..' heal='..base+target_tm.boost_he..'+'..bonus
             target_tm.boost_he=(target_tm.boost_he or 0)+bonus
         elseif ta=='block' then
-            local base=target_tm.e.bp or 0
+            local base=target.bp or 0
             local bonus=base*bm
             msg=attacker.name..' boosts '..target_name..' block='..base+target_tm.boost_bp ..'+'..bonus
             target_tm.boost_bp=(target_tm.boost_bp or 0)+bonus
@@ -482,7 +513,7 @@ function do_next_action()
         end
         atk_fx={
             mode='boost',
-            e=target_tm.e
+            e=target
         }
         exec_wait=true
         local fx=atk_fx
@@ -495,6 +526,9 @@ function do_next_action()
             if atk_fx==fx then atk_fx=nil end
         end)
         sfx(4)
+        for i=1,4+rnd(5)do
+            add_particle(target.x-6+rnd(13),target.y+8,10+rnd(5),0,-1-rnd(2),false,false,false,1+rnd(1),{9,10,7})
+        end
     else
         msg=attacker.name..' uses '..(action and action.name or '...')
     end

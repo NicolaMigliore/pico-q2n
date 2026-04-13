@@ -82,6 +82,8 @@ function _init()
 	cur_scene=_scenes.test
 	set_scene('world')
 
+    particles_i()
+
 	pts=0
 	deb=nil
 	show_col=false
@@ -104,11 +106,13 @@ function _update()
     end
 
 	cur_scene.u()
+    particles_u()
 end
 
 function _draw()
 	cls(6)
 	cur_scene.d()
+    particles_d()
 
 	-- draw transition
     local trans_timer = get_timer('transition') 

@@ -3,6 +3,7 @@ version 43
 __lua__
 #include main.lua
 #include utils.lua
+#include particles.lua
 #include systems.lua
 #include components.lua
 #include characters.lua
