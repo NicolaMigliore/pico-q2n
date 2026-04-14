@@ -1,7 +1,3 @@
-function new_collider(r,onenter,whilecolliding)
-    return {r=r,onenter=onenter,whilecolliding=whilecolliding,colliding=false}
-end
-
 function new_flat_shader(c)
     local sh={}
     for i=1,15 do
@@ -11,4 +7,8 @@ function new_flat_shader(c)
 end
 function set_flat_shader(e,c)
     e.shader=new_flat_shader(c)
+end
+
+function new_motion(tn,sx,sy,tx,ty,r,sa,ta,cx,cy)
+    return {tn=tn,sx=sx,sy=sy,tx=tx,ty=ty,r=r,sa=sa,ta=ta,cx=cx,cy=cy}
 end

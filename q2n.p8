@@ -13,32 +13,6 @@ __lua__
 
 #include entities.lua
 
--->8
-
--->8
--- pickups
-function new_pickup(x,y)
-	return{
-		x=x,y=y,w=8,
-		a={idle={24,25,26,27,28,29,30}},
-		ai=rnd({1,2,3}),as=.2,
-		s='idle',
-		
-		col_shape='circle',
-		col_func=function(s,o)
-			pts+=1
-			--mark for deletion
-			s.del=true
-		end,
-		
-		u=function()end,
-		
-		d=function(s)
-			local f=s.a.idle[flr(s.ai)]
-			sprc(f,s.x,s.y,8,8,1)
-		end
-	}
-end
 __gfx__
 00000000000000111100000000000000000000000000000000000000000000000099a90000999a00000990000000000000000000000000000000000000000000
 0000000000001133331111000000001111000000000000000000000000000000099a99a00999a9900099a9000000000000000000000000000000000000000000

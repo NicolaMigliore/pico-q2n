@@ -74,7 +74,7 @@ function _init()
 	
 	-- scenes
 	_scenes={
-		test={i=function()tmp=new_id()end,u=function()end,d=function()print(tmp,1,1,1)end},
+		test={i=function()end,u=function()end,d=function()print(tmp,1,1,1)end},
 		battle={i=battle_i,u=battle_u,d=battle_d},
 		team={i=team_i,u=team_u,d=team_d},
 		world={i=world_i,u=world_u,d=world_d},
@@ -86,7 +86,6 @@ function _init()
 
 	pts=0
 	deb=nil
-	show_col=false
 	flash=1
 	blink_c=9
 end
@@ -106,6 +105,7 @@ function _update()
     end
 
 	cur_scene.u()
+    motion()
     particles_u()
 end
 

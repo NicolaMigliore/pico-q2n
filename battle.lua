@@ -84,8 +84,8 @@ function battle_u()
 
     if phase==pu then
         if(#t1==1)sel_i=1 phase=pa return
-        if(btnp(⬇️))sel_i=find_unassigned(sel_i,1)
-        if(btnp(⬆️))sel_i=find_unassigned(sel_i,-1)
+        if(btnp(⬇️))sel_i=find_ordered(sel_i,1)
+        if(btnp(⬆️))sel_i=find_ordered(sel_i,-1)
         if(btnp(❎))step_back_order()
         if(btnp(🅾️) and t1[sel_i] and not t1[sel_i].action)phase=pa
 
@@ -148,7 +148,7 @@ function battle_d()
     local gap=1
     local total_h=0
     each(t1,function(tm,i)
-        if card_sel(i,'ally') then
+        if ((phase==pu or phase==pa) and i==sel_i) or (phase==pt and actions[action_i].t=='ally' and i==tar_i) then
             total_h+=16
         else
             total_h+=11
@@ -158,7 +158,7 @@ function battle_d()
     local y=96-total_h
     each(t1,function(tm,i)
         local e=tm.e
-        local selected=card_sel(i,'ally')
+        local selected=((phase==pu or phase==pa) and i==sel_i) or (phase==pt and actions[action_i].t=='ally' and i==tar_i)
         local ox,oy=127-57-1,y
         local c=5
         if(selected)ox,c=ox-4,1
@@ -170,7 +170,7 @@ function battle_d()
     y=2
     each(t2,function(tm,i)
         local e=tm.e
-        local selected=card_sel(i,'enemy')
+        local selected=phase==pt and actions[action_i].t=='enemy' and i==tar_i
         local c=5
         local ox,oy=2,y
         if(selected)ox,c=ox+4,1
@@ -179,7 +179,6 @@ function battle_d()
     end)
 
     -- commands
-
     local sel_tm=t1[sel_i]
     local sel_e=sel_tm and sel_tm.e
     local targets=current_targets()
@@ -211,25 +210,14 @@ function battle_d()
                 d_stat_panel('select target: '..tar_e.name,tar_e)
             end
             printl('⬇️',tar_e.x,tar_e.y-13,'c',actions[action_i].c,1)
-        else
-            d_ui_panel()
-            printl('no target available',4,100,nil,1,nil,{w=118})
         end
-    elseif phase==ex then
+    elseif phase==ex or phase==dn or phase==pt then
         d_ui_panel()
-        printl(msg,4,100,nil,1,nil,{w=118})
-    elseif phase==dn then
-        d_ui_panel()
-        printl(msg,4,100,nil,1,nil,{w=118})
+        printl(phase==pt and 'no target available' or msg,4,100,nil,1,nil,{w=118})
     end
 
     if(flash>.2)printl('🅾️',124,120,'r',9,1)
     draw_attack_fx()
-end
-
-function card_sel(i,t)
-    return ((phase==pu or phase==pa) and t=='ally' and i==sel_i)
-        or (phase==pt and actions[action_i].t==t and i==tar_i)
 end
 
 function current_targets()
@@ -263,7 +251,7 @@ function commit_order()
         start_execute_phase()
     else
         -- jump to the next ally without an assigned action
-        sel_i=find_unassigned(sel_i,1)
+        sel_i=find_ordered(sel_i,1)
         phase=pu
         msg='assigned '..assigned_count()..'/'..#t1
     end
@@ -277,30 +265,20 @@ function assigned_count()
     return c
 end
 
-function find_unassigned(from_i,dir)
+function find_ordered(from_i,dir,has)
+    if has==nil then has=false end
     local i=from_i
     for _=1,#t1 do
         i+=dir
         if i>#t1 then i=1 end
         if i<1 then i=#t1 end
-        if not t1[i].action then return i end
+        if (t1[i].action and has) or (not t1[i].action and not has) then return i end
     end
-    return from_i
-end
-
-function find_assigned(from_i,dir)
-    local i=from_i
-    for _=1,#t1 do
-        i+=dir
-        if i>#t1 then i=1 end
-        if i<1 then i=#t1 end
-        if t1[i].action then return i end
-    end
-    return nil
+    return has and nil or from_i
 end
 
 function step_back_order()
-    local i=find_assigned(sel_i,-1)
+    local i=find_ordered(sel_i,-1,1)
     if not i then
         msg='nothing to undo'
         return
@@ -317,22 +295,22 @@ function step_back_order()
 end
 
 function reset_orders()
-    for tm in all(t1) do
+    each(t1,function(tm)
         tm.action=nil
         tm.target=nil
         tm.order=nil
         tm.boost_ap=0
         tm.boost_he=0
         tm.boost_bp=0
-    end
-    for tm in all(t2) do
+    end)
+    each(t2,function(tm)
         tm.action=nil
         tm.target=nil
         tm.order=nil
         tm.boost_ap=0
         tm.boost_he=0
         tm.boost_bp=0
-    end
+    end)
     exec_order={}
     exec_i=1
     assign_i=1
@@ -366,6 +344,42 @@ function start_execute_phase()
     msg='executing...'
 end
 
+function start_atk_fx(refresh,after)
+    exec_wait=true
+    local fx=atk_fx
+    add_timer('atk_anim',.5,function()
+        if fx and fx.e then
+            if fx.hp1 then fx.e.hp=fx.hp1 end
+            clear_shader(fx.e)
+            if refresh then refresh_actor_shader(fx.e) end
+        end
+        if fx and fx.a then
+            local m=fx.a.m
+            if m then
+                fx.a.x=m.sx
+                fx.a.y=m.sy
+            end
+            fx.a.m=nil
+        end
+        exec_wait=false
+        if atk_fx==fx then atk_fx=nil end
+        if after then after() end
+    end)
+end
+
+function start_move_fx(a,tn,t,refresh,after)
+    exec_wait=true
+    add_timer(tn,t,function()
+        local m=a.m
+        if m then
+            a.x=m.sx
+            a.y=m.sy
+            a.m=nil
+        end
+        start_atk_fx(refresh,after)
+    end)
+end
+
 function do_next_action()
     local step=exec_order[exec_i]
     if not step then
@@ -381,13 +395,13 @@ function do_next_action()
     local action=step.action
     local needs_target=action and action.t
 
-    if not is_valid_actor_tm(step) then
+    if not is_valid_tm(step) then
         msg=attacker.name..' is down'
         exec_i+=1
         return
     end
 
-    if needs_target and not is_valid_target_tm(target_tm) then
+    if needs_target and not is_valid_tm(target_tm) then
         msg=attacker.name..' skips (no target)'
         exec_i+=1
         return
@@ -402,6 +416,8 @@ function do_next_action()
         local hp1=max(hp0-dmg,0)
         msg=attacker.name..' hits '..target.name..' '..dmg
         if block0>0 then msg=msg..'('..raw..'-'..min(block0,raw)..')' end
+        local ox=target.x>attacker.x and -2 or 2    -- To remove for token reduction
+        attacker.m=new_motion('atk_anim',attacker.x,attacker.y,target.x+ox,target.y)
         atk_fx={
             text='-'..dmg,
             sx=target.x,
@@ -411,19 +427,11 @@ function do_next_action()
             c=8,
             mode='attack',
             e=target,
+            a=attacker,
             hp0=hp0,
             hp1=hp1
         }
-        exec_wait=true
-        local fx=atk_fx
-        add_timer('atk_anim',.5,function()
-            if fx and fx.e then
-                fx.e.hp=fx.hp1
-                clear_shader(fx.e)
-            end
-            exec_wait=false
-            if atk_fx==fx then atk_fx=nil end
-        end)
+        start_atk_fx()
         sfx(1)
         for i=1,4+rnd(5)do
             add_particle(target.x,target.y+4,10+rnd(10),rnd(2)-1,-.8-rnd(.8),true,false,false,1,{2,8,7})
@@ -434,6 +442,7 @@ function do_next_action()
         local hp0=target.hp
         local hp1=min(hp0+he,target.max_hp or hp0)
         msg=attacker.name..' heals '..target.name
+        attacker.m=new_motion('heal_move',attacker.x,attacker.y,nil,nil,3,0,1,attacker.x,attacker.y)
         atk_fx={
             text='+'..he,
             sx=target.x,
@@ -446,15 +455,7 @@ function do_next_action()
             hp0=hp0,
             hp1=hp1
         }
-        exec_wait=true
-        local fx=atk_fx
-        add_timer('atk_anim',.5,function()
-            if fx and fx.e then
-                fx.e.hp=fx.hp1
-                clear_shader(fx.e)
-            end
-            exec_wait=false
-            if atk_fx==fx then atk_fx=nil end
+        start_move_fx(attacker,'heal_move',.4,nil,function()
             for i=1,4+rnd(5)do
                 add_particle(target.x,target.y+4,10+rnd(10),rnd(2)-1,-.8-rnd(.8),true,false,false,1,{3,11,7})
             end
@@ -475,19 +476,23 @@ function do_next_action()
     elseif action and action.name=='block' then
         attacker.block=max((attacker.bp or 0)+(step.boost_bp or 0),0)
         msg=attacker.name..' blocks'
-        sfx(3)
-        for i=1,15 do
-            local dest_x,dest_y=attacker.x,attacker.y
-            local die=10+rnd(10)
-            local a=rnd(1)
-            local dist=8+rnd(6)
-            local x=dest_x+cos(a)*dist
-            local y=dest_y+sin(a)*dist
-            local dx=(dest_x-x)/die
-            local dy=(dest_y-y)/die
+        attacker.m=new_motion('block_move',attacker.x,attacker.y,attacker.x,attacker.y+2)
+        atk_fx={e=attacker}
+        start_move_fx(attacker,'block_move',.3,1,function()
+            for i=1,15 do
+                local dest_x,dest_y=attacker.x,attacker.y
+                local die=10+rnd(10)
+                local a=rnd(1)
+                local dist=8+rnd(6)
+                local x=dest_x+cos(a)*dist
+                local y=dest_y+sin(a)*dist
+                local dx=(dest_x-x)/die
+                local dy=(dest_y-y)/die
 
-            add_particle(x,y,die,dx,dy,false,false,true,2+rnd(),{1,12,7})
-        end
+                add_particle(x,y,die,dx,dy,false,false,true,2+rnd(),{1,12,7})
+            end
+        end)
+        sfx(3)
     elseif action and action.name=='boost' and target_tm then
         local target=target_tm.e
         local target_name=target and target.name or 'target'
@@ -511,24 +516,21 @@ function do_next_action()
         else
             msg=attacker.name..' boosts '..target_name..' (no effect)'
         end
+        local d=point_dist(attacker.x,attacker.y,target.x,target.y)
+        local tx=attacker.x+(target.x-attacker.x)*4/d
+        local ty=attacker.y+(target.y-attacker.y)*4/d
+        attacker.m=new_motion('boost_move',attacker.x,attacker.y,tx,ty)
         atk_fx={
             mode='boost',
-            e=target
+            e=target,
+            a=attacker
         }
-        exec_wait=true
-        local fx=atk_fx
-        add_timer('atk_anim',.5,function()
-            if fx and fx.e then
-                clear_shader(fx.e)
-                refresh_actor_shader(fx.e)
+        start_move_fx(attacker,'boost_move',.3,1,function()
+            for i=1,4+rnd(5)do
+                add_particle(target.x-6+rnd(13),target.y+8,10+rnd(5),0,-1-rnd(2),false,false,false,1+rnd(1),{9,10,7})
             end
-            exec_wait=false
-            if atk_fx==fx then atk_fx=nil end
         end)
         sfx(4)
-        for i=1,4+rnd(5)do
-            add_particle(target.x-6+rnd(13),target.y+8,10+rnd(5),0,-1-rnd(2),false,false,false,1+rnd(1),{9,10,7})
-        end
     else
         msg=attacker.name..' uses '..(action and action.name or '...')
     end
@@ -553,9 +555,8 @@ function auto_plan_enemy_orders()
 end
 
 function team_action_weights(tm)
-    local e=tm and tm.e or nil
+    local e=tm.e
     local weights={}
-    if not e then return weights end
 
     -- stats drive the base tendency for each action
     weights.attack=1+(e.ap or 0)*2
@@ -656,7 +657,7 @@ function count_damaged_team_members(team_id)
     local team=team_id==1 and t1 or t2
     local c=0
     for tm in all(team) do
-        if tm.e and tm.e.hp<(tm.e.max_hp or tm.e.hp) then
+        if tm.e.hp<(tm.e.max_hp or tm.e.hp) then
             c+=1
         end
     end
@@ -673,7 +674,6 @@ function count_boostable_allies(src_tm)
 end
 
 function targets_for_team_action(team_id,a)
-    if not a or not a.t then return {} end
     if a.t=='enemy' then return team_id==1 and t2 or t1 end
     return team_id==1 and t1 or t2
 end
@@ -689,13 +689,8 @@ function shuffled_team(team)
     return ret
 end
 
-function is_valid_target_tm(tm)
-    if not tm or not tm.e or tm.e.hp<=0 then return false end
-    return find(t1,tm) or find(t2,tm)
-end
-
-function is_valid_actor_tm(tm)
-    if not tm or not tm.e or tm.e.hp<=0 then return false end
+function is_valid_tm(tm)
+    if tm.e.hp<=0 then return false end
     return find(t1,tm) or find(t2,tm)
 end
 
@@ -770,8 +765,6 @@ function draw_attack_fx()
 end
 
 function refresh_actor_shader(e)
-    if not e then return end
-    if not e.sprite then return end
     if e.block and e.block>0 then
         e.sprite.o=12
     else
@@ -820,21 +813,10 @@ function d_stat_panel(label,e)
 end
 
 function print_char_stats(e)
-    local stats={
-        {k='hp',l='hp'},
-        {k='ap',l='atk'},
-        {k='bp',l='blk'},
-        {k='block',l='sh'},
-        {k='he',l='hea'},
-        {k='bm',l='bst'}
-    }
-    each(stats,function(s,i)
-        local col=(i-1)%3
-        local row=flr((i-1)/3)
-        local ox=40*col
-        local oy=111+9*row
-        local l=s.l..':'..e[s.k]
-        if(s.k=='hp')l=s.l..':'..e[s.k]..'/'..e.max_hp
-        printl(l,ox+4,oy+2,nil,1)
-    end)
+    printl('hp:'..e.hp..'/'..e.max_hp,4,113,nil,1)
+    printl('atk:'..e.ap,44,113,nil,1)
+    printl('blk:'..e.bp,84,113,nil,1)
+    printl('sh:'..e.block,4,122,nil,1)
+    printl('hea:'..e.he,44,122,nil,1)
+    printl('bst:'..e.bm,84,122,nil,1)
 end

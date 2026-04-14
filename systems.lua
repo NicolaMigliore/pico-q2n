@@ -20,11 +20,7 @@ function graphics()
             e.d(e)
         end
 
-        if show_col and e.collider then
-            local cc=e.collider.colliding and 8 or 2
-            circ(e.x,e.y,e.collider.r or 0,cc)
-        end
-
+        
         pal()
     end)
 end
@@ -44,6 +40,23 @@ function animation()
     end)
 end
 
+function motion()
+    each_ent('m',function(e)
+        local m=e.m
+        local t=get_timer(m.tn)
+        if not t then return end
+        local p=ease_in_out_back(t.perc)
+        if m.r then
+            local a=m.sa+(m.ta-m.sa)*p
+            e.x=m.cx+cos(a)*m.r
+            e.y=m.cy+sin(a)*m.r
+        else
+            e.x=m.sx+(m.tx-m.sx)*p
+            e.y=m.sy+(m.ty-m.sy)*p
+        end
+    end)
+end
+
 function shade(e)
     for rep in all(e.shader)do
         pal(rep[1],rep[2])
@@ -55,34 +68,4 @@ function control()
     each_ent('u',function(e)
         e.u(e)
     end)
-end
-
-function physic()
-    -- reset collision state
-    each(_entities,function(e)
-        if e and e.collider then
-            e.collider.colliding=false
-        end
-    end)
-
-    -- pairwise circular collider checks
-    for i=1,#_entities-1 do
-        local e=_entities[i]
-        if e and e.collider then
-            for j=i+1,#_entities do
-                local o=_entities[j]
-                if o and o.collider then
-                    local r=(e.collider.r or 0)+(o.collider.r or 0)
-                    local hit=point_dist(e.x,e.y,o.x,o.y)<=r
-                    if hit then
-                        e.collider.colliding=true
-                        o.collider.colliding=true
-                        if e.collider.onenter then e.collider.onenter(e,o) end
-                    end
-                end
-            end
-            local col=e.collider
-            if(col.colliding and col.whilecolliding)col.whilecolliding(e)
-        end
-    end
 end

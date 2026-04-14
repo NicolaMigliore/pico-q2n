@@ -160,23 +160,10 @@ function text_w(t)
     return print(t,128,-10)-128
 end
 
-function show_sialog(t,i)
-	i=i or 1
-	local cur_t=t[i]
-end
-
 function bar(x,y,w,p,c)
     local bw=max((w-2)*p,1)
     rrectfill(x,y,w,5,1,1)
     rrectfill(x+1,y+1,bw,3,1,c)
-end
-
-function rndi(m)
-    return flr(rnd(m))
-end
-function new_id()
-    local a,b,c=rndi(9),rndi(5),rndi(9)
-    return a..b..c..'-'..rnd({a,b,c})..'-'..rnd({a,b,c})
 end
 
 -- table functions
@@ -185,13 +172,6 @@ function find(t,s)
         if(v==s)return i
     end
     return nil
-end
-function filter(t,f)
-    local ret={}
-    for v in all(t)do
-        if(f(v))add(ret,v)
-    end
-    return ret
 end
 --- create a new table with the same elements
 function copy(t)
@@ -213,4 +193,14 @@ function d_ui_panel(x,y,w,h)
     x,y,w,h=x or 1,y or 97,w or 126,h or 30
     rrectfill(x,y,w,h,2,1)
     rrectfill(x+1,y+1,w-2,h-2,2,6)
+end
+
+function ease_in_out_back(x)
+    local c1 = 1.70158
+    local c2 = c1 * 1.525
+    
+    return x < 0.5
+      and ((2 * x)^2 * ((c2 + 1) * 2 * x - c2)) / 2
+      or ((2 * x - 2)^2 * ((c2 + 1) * (x * 2 - 2) + c2) + 2) / 2
+    
 end

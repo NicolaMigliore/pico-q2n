@@ -1,6 +1,5 @@
 function world_i()
     player=new_character(active_team[1],20,50)
-    player.collider=new_collider(8)
     levels={}
     each(all_levels,function(lv,i)
         if i<=min(unlocked_levels or #all_levels,#all_levels) then
@@ -25,14 +24,11 @@ function world_i()
             z=-1,
             s=nil,
             u=function(e)
-                e.w=e.collider.colliding==true and 18 or 8
-                e.collider.r=e.w
-                -- for enemy in all(lv.enemy_team) do
-                --     if e.collider.colliding then clear_shader(enemy) else set_flat_shader(enemy,1) end
-                -- end
+                e.hot=point_dist(player.x,player.y,e.x,e.y)<=14
+                e.w=e.hot and 18 or 8
             end,
             d=function(e)
-                local nc=(e.collider and e.collider.colliding) and 9 or 1
+                local nc=e.hot and 9 or 1
                 circfill(e.x,e.y,e.w-2,nc)
                 circ(e.x,e.y,e.w,1)
                 printl(i,e.x,e.y-9,'c',1)
@@ -40,7 +36,6 @@ function world_i()
             end
         })
         node.sprite=nil
-        node.collider=new_collider(6)
         lv.node=node
         add(_entities,node)
     end)
@@ -59,7 +54,6 @@ function world_u()
     -- screen bounds
     player.x=mid(4,player.x,123)
     player.y=mid(4,player.y,123)
-    physic()
 
     if btnp(5) then
         set_scene('team')
@@ -80,7 +74,7 @@ end
 function get_colliding_level()
     for lv in all(levels) do
         local n=lv.node
-        if n and n.collider and n.collider.colliding then
+        if n and n.hot then
             return lv
         end
     end
