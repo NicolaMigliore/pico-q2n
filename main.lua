@@ -7,44 +7,14 @@ function _init()
 
     -- levels
     all_levels={
-        {
-            x=25,y=30,
-            enemy_team={
-                new_character('min'),
-            },
-            onwin=function()unlock_lv(2)end,
-            onwin_msg='victory!\nlevel 2 unlocked'
-        },
-        {
-            x=162,y=30,
-            enemy_team={
-                new_character('min'),
-                new_character('min'),
-            },
-            onwin=function()unlock_lv(3)unlock_party(2)end,
-            onwin_msg='victory!\nlevel 3 unlocked\nparty size +1'
-        },
-        {
-            x=162,y=90,
-            enemy_team={
-                new_character('min',82,65),
-                new_character('min',97,70),
-                new_character('min',97,70),
-            },
-            onwin=function()unlock_lv(3)end,
-            onwin_msg='victory!\nlevel 3 unlocked'
-        },
-        {
-            x=25,y=90,
-            enemy_team={
-                new_character('pos',82,65),
-                new_character('yun',97,70),
-                new_character('dar',97,70),
-            },
-            onwin=function()unlock_lv(3)end,
-            onwin_msg='victory!\nlevel 3 unlocked'
-        }
+        '25|30|min|||2||7|15|14|3|11',
+        '162|30|min|min||3|2||15|12|3|11',
+        '162|90|min|min|min|4|||13|9|3|11',
+        '25|90|pos|yun|dar|5|||13|2|4|15'
     }
+    each(all_levels,function(v,i)
+        all_levels[i]=parse_level_def(v)
+    end)
 
     -- team
     roster_ids={'elf','mas','dal','pos','yun','kil','dar','man'}

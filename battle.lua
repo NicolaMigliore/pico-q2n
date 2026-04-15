@@ -1,8 +1,11 @@
 --MARK:Init
 function battle_i(opts)
     opts=opts or {}
-    onwin=opts.onwin or function()end
-    onwin_msg=opts.onwin_msg
+    rewards=opts
+    c1=opts.c1 or 15
+    c2=opts.c2 or 14
+    c3=opts.c3 or 3
+    c4=opts.c4 or 11
     -- phase: pu=pick unit pa=pick action pt=pick target ex=execute dn=done
     pu,pa,pt,ex,dn='pu','pa','pt','ex','dn'
     actions={
@@ -64,16 +67,12 @@ function battle_u()
 
     if is_battle_over() then
         if #t2==0 and not battle_rewarded then
-            onwin()
+            msg=reward_msg(rewards)
+            apply_rewards(rewards)
             battle_rewarded=true
         end
         phase=dn
         if #t2==0 then
-            if type(onwin_msg)=='function' then
-                msg=onwin_msg() or 'victory'
-            else
-                msg=onwin_msg or 'victory'
-            end
             sfx(6)
         else
             msg='defeat'
@@ -134,15 +133,24 @@ end
 --MARK:Draw
 function battle_d()
     --scene
-    cls(13)
-    ovalfill(1,70,55,95,3)
-    ovalfill(3,72,53,93,11)
+    cls(c1)
+    -- background
+    rrectfill(0,0,128,6,0,c2)
+    rrectfill(0,9,128,2,0,c2)
+    rrectfill(0,15,128,5,0,c2)
+    rrectfill(0,19,128,2,0,c2)
+    rrectfill(0,22,128,2,0,c2)
+    rrectfill(0,27,128,1,0,c2)
+    rrectfill(0,29,128,1,0,c2)
 
-    ovalfill(72,18,126,43,3)
-    ovalfill(74,20,124,41,11)
+    -- platforms
+    ovalfill(1,70,55,95,c3)
+    ovalfill(3,72,53,93,c4)
+
+    ovalfill(72,18,126,43,c3)
+    ovalfill(74,20,124,41,c4)
 
     graphics()
-
 
     -- ui
     local gap=1

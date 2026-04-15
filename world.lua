@@ -71,7 +71,7 @@ function world_u()
         for e in all(lv.enemy_team)do
             add(enemies,e.id)
         end
-        set_scene('battle',{enemy_team=enemies,onwin=lv.onwin,onwin_msg=lv.onwin_msg})
+        set_scene('battle',{enemy_team=enemies,lv=lv.lv,party=lv.party,char=lv.char,c1=lv.c1,c2=lv.c2,c3=lv.c3,c4=lv.c4})
         return
     end
 end
@@ -128,4 +128,41 @@ end
 function unlock_party(n)
     max_team_size=max(n,max_team_size)
     store_data('max_team_size',max_team_size)
+end
+function unlock_char(n)
+    unlocked_chars=max(n,unlocked_chars)
+    store_data('unlocked_chars',unlocked_chars)
+end
+
+function apply_rewards(opts)
+    if opts.lv then unlock_lv(opts.lv) end
+    if opts.party then unlock_party(opts.party) end
+    if opts.char then unlock_char(opts.char) end
+end
+
+function reward_msg(opts)
+    local s='victory'
+    if opts.lv then s..='\nlevel '..opts.lv..' unlocked' end
+    if opts.party and opts.party>max_team_size then s..='\nparty size +'..(opts.party-max_team_size) end
+    if opts.char then s..='\n'.._characters[roster_ids[opts.char]].name..' joins your team!' end
+    return s
+end
+
+function parse_level_def(s)
+    local p=split(s,'|',false)
+    local e={}
+    for i=3,5 do
+        if p[i]!='' then add(e,new_character(p[i])) end
+    end
+    return {
+        x=tonum(p[1]),y=tonum(p[2]),
+        enemy_team=e,
+        lv=tonum(p[6]),
+        party=tonum(p[7]),
+        char=tonum(p[8]),
+        c1=tonum(p[9]),
+        c2=tonum(p[10]),
+        c3=tonum(p[11]),
+        c4=tonum(p[12]),
+    }
 end
