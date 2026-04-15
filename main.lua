@@ -16,7 +16,7 @@ function _init()
             onwin_msg='victory!\nlevel 2 unlocked'
         },
         {
-            x=110,y=24,
+            x=162,y=30,
             enemy_team={
                 new_character('min'),
                 new_character('min'),
@@ -25,7 +25,7 @@ function _init()
             onwin_msg='victory!\nlevel 3 unlocked\nparty size +1'
         },
         {
-            x=75,y=50,
+            x=162,y=90,
             enemy_team={
                 new_character('min',82,65),
                 new_character('min',97,70),
@@ -35,7 +35,7 @@ function _init()
             onwin_msg='victory!\nlevel 3 unlocked'
         },
         {
-            x=95,y=100,
+            x=25,y=90,
             enemy_team={
                 new_character('pos',82,65),
                 new_character('yun',97,70),
