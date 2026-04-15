@@ -9,7 +9,6 @@ function team_i()
     team_top_i=1
     team_sel_i=1
     team_pick=copy(active_team or {})
-    team_msg='o: toggle x: done'
     _entities={}
     each(team_roster,function(id,i)
         local e=new_character(id,94,24+18*(i-1))
@@ -19,8 +18,6 @@ function team_i()
 end
 
 function team_u()
-    animation()
-
     if btnp(2) then team_sel_i=max(team_sel_i-1,1) sync_team_preview() end
     if btnp(3) then team_sel_i=min(team_sel_i+1,#team_roster) sync_team_preview() end
 
@@ -29,12 +26,8 @@ function team_u()
         local i=find(team_pick,id)
         if i then
             deli(team_pick,i)
-            team_msg='removed '.._characters[id].name
         elseif #team_pick<max_team_size then
             add(team_pick,id)
-            team_msg='added '.._characters[id].name
-        else
-            team_msg='team full'
         end
     end
 
@@ -43,8 +36,6 @@ function team_u()
             active_team=copy(team_pick)
             store_data('active_team',active_team)
             set_scene('world')
-        else
-            team_msg='pick at least 1'
         end
     end
 end
@@ -85,7 +76,6 @@ function team_d()
     local e=_entities[team_sel_i]
     if e then
         d_stat_panel(e.name,e)
-        -- printl(team_msg,123,100,'r',1)
     end
 end
 

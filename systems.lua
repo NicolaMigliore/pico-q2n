@@ -25,34 +25,32 @@ function graphics()
     end)
 end
 
-function animation()
-    each_ent('a',function(e)
-        -- advance anim
-        e.ai+=e.as
-        local cur_a=e.a[e.state]
-        if(e.ai>#cur_a+1)e.ai=1
-
-        -- update sprite
-        local f=e.a[e.state][flr(e.ai)]
-        local x,y=f[1],f[2]
-        e.sprite.x=x
-        e.sprite.y=y
-    end)
-end
-
-function motion()
-    each_ent('m',function(e)
-        local m=e.m
-        local t=get_timer(m.tn)
-        if not t then return end
-        local p=ease_in_out_back(t.perc)
-        if m.r then
-            local a=m.sa+(m.ta-m.sa)*p
-            e.x=m.cx+cos(a)*m.r
-            e.y=m.cy+sin(a)*m.r
-        else
-            e.x=m.sx+(m.tx-m.sx)*p
-            e.y=m.sy+(m.ty-m.sy)*p
+function systems()
+    each(_entities,function(e)
+        -- animation
+        if e.a then
+            e.ai+=e.as
+            local cur_a=e.a[e.state]
+            if(e.ai>#cur_a+1)e.ai=1
+            local f=e.a[e.state][flr(e.ai)]
+            local x,y=f[1],f[2]
+            e.sprite.x=x
+            e.sprite.y=y
+        end
+        -- motion
+        if e.m then
+            local m=e.m
+            local t=get_timer(m.tn)
+            if not t then return end
+            local p=ease_in_out_back(t.perc)
+            if m.r then
+                local a=m.sa+(m.ta-m.sa)*p
+                e.x=m.cx+cos(a)*m.r
+                e.y=m.cy+sin(a)*m.r
+            else
+                e.x=m.sx+(m.tx-m.sx)*p
+                e.y=m.sy+(m.ty-m.sy)*p
+            end
         end
     end)
 end
@@ -61,11 +59,4 @@ function shade(e)
     for rep in all(e.shader)do
         pal(rep[1],rep[2])
     end
-end
-
---called each frame
-function control()
-    each_ent('u',function(e)
-        e.u(e)
-    end)
 end

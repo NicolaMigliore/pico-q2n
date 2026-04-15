@@ -17,19 +17,6 @@ function each(t,f,reverse)
 	end
 end
 
--- @param comp - list of required components to filter entities.
-function each_ent(comp,f,reverse)
-    local query={}
-    for e in all(_entities)do
-        local has_all=true
-        for c in all(comp)do
-            if not e[c] then has_all=has_all and false end
-        end
-        if(has_all)add(query,e)
-    end
-    each(query,f,reverse)
-end
-
 -- point to point distance
 function point_dist(x1,y1,x2,y2)
 	return sqrt((x2-x1)^2+(y2-y1)^2)
@@ -57,20 +44,7 @@ function ssprc(sx,sy,sw,sh,dx,dy,dw,dh,fx,oc)
 end
 
 function sprc(n,x,y,oc)
-    x = x - 4
-    y = y - 4
-
-    -- outline
-    if oc then
-        for i=1,15 do pal(i,oc) end
-        spr(n,x-1,y)
-        spr(n,x+1,y)
-        spr(n,x,y-1)
-        spr(n,x,y+1)
-        pal()
-    end
-
-    spr(n,x,y)
+    ssprc(n%16*8,flr(n/16)*8,8,8,x,y,8,8,false,oc)
 end
 
 -- print label

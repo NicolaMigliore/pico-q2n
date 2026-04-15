@@ -74,8 +74,8 @@ function _update()
         end
     end
 
+    systems()
 	cur_scene.u()
-    motion()
     particles_u()
 end
 

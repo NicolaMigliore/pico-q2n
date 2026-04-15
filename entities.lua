@@ -1,18 +1,3 @@
--- MARK: entity
--- @param opts: {s:sprite, u:update function, d: draw function}
-function new_ent(x,y,w,opts)
-	opts=opts or {}
-	return {
-		x=x,y=y,w=w or 8,
-		z=opts.z or 0,
-		sprite=opts.s or 1,
-		u=opts.u, --or function()end,
-		d=opts.d or function(e)
-			sprc(e.sprite,e.x,e.y,1)
-		end
-	}
-end
-
 -- MARK: actor
 function new_actor(x,y,opts)
 	opts=opts or {}

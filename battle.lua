@@ -47,7 +47,6 @@ function battle_i(opts)
 end
 --MARK:Update
 function battle_u()
-    animation()
     cleanup_dead()
     -- keep block tint in sync on all living actors
     each(t1,function(tm)
@@ -67,8 +66,19 @@ function battle_u()
 
     if is_battle_over() then
         if #t2==0 and not battle_rewarded then
-            msg=reward_msg(rewards)
-            apply_rewards(rewards)
+            msg='victory'
+            if rewards.lv then
+                unlock_lv(rewards.lv)
+                msg..='\nlevel '..rewards.lv..' unlocked'
+            end
+            if rewards.party then
+                if rewards.party>max_team_size then msg..='\nparty size +'..(rewards.party-max_team_size) end
+                unlock_party(rewards.party)
+            end
+            if rewards.char then
+                unlock_char(rewards.char)
+                msg..='\n'.._characters[roster_ids[rewards.char]].name..' joins your team!'
+            end
             battle_rewarded=true
         end
         phase=dn

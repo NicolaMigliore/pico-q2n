@@ -40,7 +40,8 @@ Notes:
 
 
 # TODO
-- [] particle system
-- [] animate battle
+- [x] particle system
+- [x] animate battle
 - [] sfx
 - [] music
+- [] overworld map

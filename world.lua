@@ -22,28 +22,22 @@ function world_i()
             add(_entities,enemy)
         end)
 
-        local node=new_ent(lv.x,lv.y,8,{
-            z=-1,
-            s=nil,
-            u=function(e)
-                e.hot=i==lv_i
-                e.w=e.hot and 18 or 8
-            end,
+        local node={
+            x=lv.x,y=lv.y,w=8,z=-1,
             d=function(e)
-                circfill(e.x,e.y,e.w-2,e.hot and 9 or 1)
-                circ(e.x,e.y,e.w,1)
+                local h=i==lv_i
+                local w=h and 18 or 8
+                circfill(e.x,e.y,w-2,h and 9 or 1)
+                circ(e.x,e.y,w,1)
                 printl(i,e.x,e.y-9,'c',1)
             end
-        })
-        node.sprite=nil
+        }
         lv.node=node
         add(_entities,node)
     end)
 end
 
 function world_u()
-    control()
-    animation()
     local t=get_timer('world_move')
     if player.m and (not t or t.done) then
         local lv=levels[lv_i]
@@ -100,7 +94,12 @@ end
 function world_d()
     cls(13)
     camera(world_cam_x,0)
-    d_world_paths()
+    -- draw the train-track path between sequential levels
+    for i=1,#levels-1 do
+        local a=levels[i]
+        local b=levels[i+1]
+        line(a.x,a.y,b.x,b.y,1)
+    end
     graphics()
     camera()
 
@@ -111,14 +110,6 @@ function world_d()
     printl('overworld',4,5,nil,1)
     printl('lv:'..lv_i,123,5,'r',1)
 
-end
-
-function d_world_paths()
-    for i=1,#levels-1 do
-        local a=levels[i]
-        local b=levels[i+1]
-        line(a.x,a.y,b.x,b.y,1)
-    end
 end
 
 function unlock_lv(n)
@@ -132,20 +123,6 @@ end
 function unlock_char(n)
     unlocked_chars=max(n,unlocked_chars)
     store_data('unlocked_chars',unlocked_chars)
-end
-
-function apply_rewards(opts)
-    if opts.lv then unlock_lv(opts.lv) end
-    if opts.party then unlock_party(opts.party) end
-    if opts.char then unlock_char(opts.char) end
-end
-
-function reward_msg(opts)
-    local s='victory'
-    if opts.lv then s..='\nlevel '..opts.lv..' unlocked' end
-    if opts.party and opts.party>max_team_size then s..='\nparty size +'..(opts.party-max_team_size) end
-    if opts.char then s..='\n'.._characters[roster_ids[opts.char]].name..' joins your team!' end
-    return s
 end
 
 function parse_level_def(s)
