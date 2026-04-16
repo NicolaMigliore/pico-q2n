@@ -22,6 +22,7 @@ The cart uses `cartdata('pico-q2n')`.
 - 3: active team slot 3 as `roster_ids` index
 - 4: `unlocked_chars`
 - 5: `unlocked_levels`
+- 6: `lv_i` selected world level
 
 Notes:
 - Active team entries are stored as indices into `roster_ids`, not as character ids.

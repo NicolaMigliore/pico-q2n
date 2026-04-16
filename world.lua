@@ -8,15 +8,16 @@ function world_i()
 
     lv_i=mid(1,lv_i or 1,#levels)
     local sel=levels[lv_i]
-    player=new_character(active_team[1],sel.x,sel.y)
+    player=new_character(active_team[1],sel.x,sel.y-4)
     world_cam_x=flr(player.x/128)*128
+    world_cam_y=flr(player.y/128)*128
 
     _entities={player}
     each(levels,function(lv,i)
         each(lv.enemy_team,function(enemy,i)
             local start_x=lv.x-((#lv.enemy_team-1)*8)/2
             enemy.x=start_x+8*(i-1)
-            enemy.y=lv.y-14+rnd(10)
+            enemy.y=lv.y-20+rnd(5)
             enemy.ai=1
             enemy.as=0
             add(_entities,enemy)
@@ -26,10 +27,9 @@ function world_i()
             x=lv.x,y=lv.y,w=8,z=-1,
             d=function(e)
                 local h=i==lv_i
-                local w=h and 18 or 8
-                circfill(e.x,e.y,w-2,h and 9 or 1)
+                local w=h and 6 or 3
+                circfill(e.x,e.y,w,9)
                 circ(e.x,e.y,w,1)
-                printl(i,e.x,e.y-9,'c',1)
             end
         }
         lv.node=node
@@ -42,10 +42,11 @@ function world_u()
     if player.m and (not t or t.done) then
         local lv=levels[lv_i]
         player.x=lv.x
-        player.y=lv.y
+        player.y=lv.y-4
         player.m=nil
     end
     world_cam_x=flr(player.x/128)*128
+    world_cam_y=flr(player.y/128)*128
 
     if btnp(5) then
         set_scene('team')
@@ -80,7 +81,8 @@ function move_level_sel(d)
     if ni!=lv_i then
         local dst=levels[ni]
         lv_i=ni
-        player.m=new_motion('world_move',c.x,c.y,dst.x,dst.y)
+        store_data('lv_i',lv_i)
+        player.m=new_motion('world_move',c.x,c.y-4,dst.x,dst.y-4)
         add_timer('world_move',.75)
     end
 end
@@ -92,8 +94,9 @@ function lv_dir(a,b)
 end
 
 function world_d()
-    cls(13)
-    camera(world_cam_x,0)
+    cls(11)
+    map(world_cam_x/8,world_cam_y/8,0,0)
+    camera(world_cam_x,world_cam_y)
     -- draw the train-track path between sequential levels
     for i=1,#levels-1 do
         local a=levels[i]
@@ -107,8 +110,8 @@ function world_d()
     printl('party:'..team_names(active_team,true),4,119,nil,1,nil,{w=118})
     printl('❎team',123,122,'r',1)
 
-    printl('overworld',4,5,nil,1)
-    printl('lv:'..lv_i,123,5,'r',1)
+    printl('\^o1ffoverworld',4,5,nil,7)
+    printl('\^o1fflv:'..lv_i,123,5,'r',7)
 
 end
 

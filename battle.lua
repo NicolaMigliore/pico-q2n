@@ -9,10 +9,10 @@ function battle_i(opts)
     -- phase: pu=pick unit pa=pick action pt=pick target ex=execute dn=done
     pu,pa,pt,ex,dn='pu','pa','pt','ex','dn'
     actions={
-        {name='attack',spr=104,t='enemy',c=8,p=4,k='ap',bk='atk'},
-        {name='block',spr=105,c=12,p=2,k='bp',bk='block'},
-        {name='heal',spr=106,t='ally',c=11,p=3,k='he',bk='heal'},
-        {name='boost',spr=107,t='ally',c=10,p=1}
+        {name='attack',spr=2,t='enemy',c=8,p=4,k='ap',bk='atk'},
+        {name='block',spr=3,c=12,p=2,k='bp',bk='block'},
+        {name='heal',spr=18,t='ally',c=11,p=3,k='he',bk='heal'},
+        {name='boost',spr=19,t='ally',c=10,p=1}
     }
     _entities={}
     t1={}

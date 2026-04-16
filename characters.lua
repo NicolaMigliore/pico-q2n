@@ -1,15 +1,17 @@
 function characters_i()
     _characters={
-        elf='elf|elfamir|8|0|24|0|50|20|10|10|.5',
-        mas='mas|maspidez|8|16|24|16|50|20|10|10|.5',
-        dal='dal|dalirya|0|32|16|32|50|10|10|20|.5',
-        pos='pos|pos.bove|32|32|48|32|50|10|20|10|.5',
-        yun='yun|yuna|64|32|80|32|50|10|10|10|1',
-        kil='kil|kilia|0|48|16|48|60|10|10|10|.5',
-        dar='dar|darkgreen|32|48|48|48|50|10|12|10|.7',
-        man='man|manuagog|96|32|112|32|60|10|10|10|.5',
-        min='min|minion|96|48|112|48|40|10|5|10|.5',
+        elf='elf|elfamir|0|16|16|16|50|20|10|10|.5',
+        mas='mas|maspidez|32|16|48|16|50|20|10|10|.5',
+        dal='dal|dalirya|64|16|80|16|50|10|10|20|.5',
+        pos='pos|pos.bove|96|16|112|16|50|10|20|10|.5',
+        yun='yun|yuna|0|32|16|32|50|10|10|10|1',
+        kil='kil|kilia|32|32|48|32|60|10|10|10|.5',
+        man='man|manuagog|64|32|80|32|60|10|10|10|.5',
+        dar='dar|darkgreen|96|32|112|32|50|10|12|10|.7',
         baz='baz|elbazo|96|48|112|48|40|10|5|10|.5',
+        big='big|big\'mon|64|48|80|48|40|10|5|10|.5',
+        min='min|minion|0|48|16|48|40|10|5|10|.5',
+        bos='bos|boss|32|48|48|48|40|10|5|10|.5',
     }
     for k,v in pairs(_characters)do
         _characters[k]=parse_character_def(v)

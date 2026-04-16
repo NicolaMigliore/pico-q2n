@@ -7,10 +7,18 @@ function _init()
 
     -- levels
     all_levels={
-        '25|30|min|||2||7|15|14|3|11',
-        '162|30|min|min||3|2||15|12|3|11',
-        '162|90|min|min|min|4|||13|9|3|11',
-        '25|90|pos|yun|dar|5|||13|2|4|15'
+        '59|76|min|||2||7|15|14|3|11',
+        '186|76|min|min||3|2||15|14|3|11',
+        '186|36|min|min|min|3|2||15|12|3|11',
+        '340|36|dal|||4|||13|9|2|4',
+        '468|36|pos|min||5|||13|2|1|3',
+        '468|204|min|yun|min||5|||13|2|3|15',
+        '332|204|kil|man||5|||13|14|4|15',
+        '332|156|man|min|min|5|||13|2|4|15',
+        '204|156|dar|min||5|||13|2|4|15',
+        '43|156|bos|||5|||13|2|4|15',
+        '43|220|min|bos|min|5|||13|2|4|15',
+        '195|220|big|bos|baz|5|||13|2|1|5',
     }
     each(all_levels,function(v,i)
         all_levels[i]=parse_level_def(v)
@@ -37,6 +45,11 @@ function _init()
     if unlocked_levels==nil then
         unlocked_levels=1
         store_data('unlocked_levels',unlocked_levels)
+    end
+    lv_i=load_data('lv_i')
+    if lv_i==nil then
+        lv_i=1
+        store_data('lv_i',lv_i)
     end
 
 	-- actors
@@ -152,6 +165,8 @@ function store_data(k,v)
         dset(4,v)
     elseif k=='unlocked_levels' then
         dset(5,v)
+    elseif k=='lv_i' then
+        dset(6,v)
     end
 end
 
@@ -166,6 +181,10 @@ function load_data(k)
         return v
     elseif k=='unlocked_levels' then
         local v=dget(5)
+        if v==0 then return nil end
+        return v
+    elseif k=='lv_i' then
+        local v=dget(6)
         if v==0 then return nil end
         return v
     elseif k=='active_team' then
@@ -195,12 +214,13 @@ function init_menu()
 end
 
 function clear_saved_data()
-    for i=0,5 do
+    for i=0,6 do
         dset(i,0)
     end
     max_team_size=1
     unlocked_chars=2
     unlocked_levels=1
+    lv_i=1
     active_team={roster_ids[1]}
 end
 
@@ -208,6 +228,7 @@ function unlock_all_features()
     max_team_size=3
     unlocked_chars=#roster_ids
     unlocked_levels=#all_levels
+    lv_i=1
     active_team={}
     for i=1,min(max_team_size,#roster_ids) do
         add(active_team,roster_ids[i])
@@ -215,5 +236,6 @@ function unlock_all_features()
     store_data('max_team_size',max_team_size)
     store_data('unlocked_chars',unlocked_chars)
     store_data('unlocked_levels',unlocked_levels)
+    store_data('lv_i',lv_i)
     store_data('active_team',active_team)
 end
