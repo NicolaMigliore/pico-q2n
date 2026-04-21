@@ -44,16 +44,18 @@ function battle_i(opts)
 
     phase=pu
     msg='assign actions'
+
+    music(opts.track or 0)
 end
 --MARK:Update
 function battle_u()
     cleanup_dead()
     -- keep block tint in sync on all living actors
     each(t1,function(tm)
-        refresh_actor_shader(tm.e)
+        apply_block_outline(tm.e)
     end)
     each(t2,function(tm)
-        refresh_actor_shader(tm.e)
+        apply_block_outline(tm.e)
     end)
     update_action_fx()
 
@@ -82,6 +84,7 @@ function battle_u()
             battle_rewarded=true
         end
         phase=dn
+        music(-1,300)
         if #t2==0 then
             sfx(6)
         else
@@ -362,14 +365,13 @@ function start_execute_phase()
     msg='executing...'
 end
 
-function start_atk_fx(refresh,after)
+function start_atk_fx(after)
     exec_wait=true
     local fx=atk_fx
     add_timer('atk_anim',.5,function()
         if fx and fx.e then
             if fx.hp1 then fx.e.hp=fx.hp1 end
             clear_shader(fx.e)
-            if refresh then refresh_actor_shader(fx.e) end
         end
         if fx and fx.a then
             local m=fx.a.m
@@ -385,7 +387,7 @@ function start_atk_fx(refresh,after)
     end)
 end
 
-function start_move_fx(a,tn,t,refresh,after)
+function start_move_fx(a,tn,t,after)
     exec_wait=true
     add_timer(tn,t,function()
         local m=a.m
@@ -394,7 +396,7 @@ function start_move_fx(a,tn,t,refresh,after)
             a.y=m.sy
             a.m=nil
         end
-        start_atk_fx(refresh,after)
+        start_atk_fx(after)
     end)
 end
 
@@ -473,7 +475,7 @@ function do_next_action()
             hp0=hp0,
             hp1=hp1
         }
-        start_move_fx(attacker,'heal_move',.4,nil,function()
+        start_move_fx(attacker,'heal_move',.4,function()
             for i=1,4+rnd(5)do
                 add_particle(target.x,target.y+4,10+rnd(10),rnd(2)-1,-.8-rnd(.8),true,false,false,1,{3,11,7})
             end
@@ -496,20 +498,19 @@ function do_next_action()
         msg=attacker.name..' blocks'
         attacker.m=new_motion('block_move',attacker.x,attacker.y,attacker.x,attacker.y+2)
         atk_fx={e=attacker}
-        start_move_fx(attacker,'block_move',.3,1,function()
-            for i=1,15 do
-                local dest_x,dest_y=attacker.x,attacker.y
-                local die=10+rnd(10)
-                local a=rnd(1)
-                local dist=8+rnd(6)
-                local x=dest_x+cos(a)*dist
-                local y=dest_y+sin(a)*dist
-                local dx=(dest_x-x)/die
-                local dy=(dest_y-y)/die
+        start_move_fx(attacker,'block_move',.3,function()end)
+        for i=1,15 do
+            local dest_x,dest_y=attacker.x,attacker.y
+            local die=10+rnd(10)
+            local a=rnd(1)
+            local dist=8+rnd(6)
+            local x=dest_x+cos(a)*dist
+            local y=dest_y+sin(a)*dist
+            local dx=(dest_x-x)/die
+            local dy=(dest_y-y)/die
 
-                add_particle(x,y,die,dx,dy,false,false,true,2+rnd(),{1,12,7})
-            end
-        end)
+            add_particle(x,y,die,dx,dy,false,false,true,2+rnd(),{1,12,7})
+        end
         sfx(3)
     elseif action and action.name=='boost' and target_tm then
         local target=target_tm.e
@@ -543,7 +544,7 @@ function do_next_action()
             e=target,
             a=attacker
         }
-        start_move_fx(attacker,'boost_move',.3,1,function()
+        start_move_fx(attacker,'boost_move',.3,function()
             for i=1,4+rnd(5)do
                 add_particle(target.x-6+rnd(13),target.y+8,10+rnd(5),0,-1-rnd(2),false,false,false,1+rnd(1),{9,10,7})
             end
@@ -782,7 +783,7 @@ function draw_attack_fx()
     end
 end
 
-function refresh_actor_shader(e)
+function apply_block_outline(e)
     if e.block and e.block>0 then
         e.sprite.o=12
     else

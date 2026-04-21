@@ -15,6 +15,7 @@ function team_i()
         e.as=.2
         add(_entities,e)
     end)
+    music(8,500)
 end
 
 function team_u()

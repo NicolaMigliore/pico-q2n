@@ -115,6 +115,7 @@ function set_scene(newscene,opts)
 		cur_scene.i(opts)
 		end)
 	end
+    music(-1,300)
 end
 
 --- sort the elements

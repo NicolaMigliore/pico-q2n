@@ -35,6 +35,8 @@ function world_i()
         lv.node=node
         add(_entities,node)
     end)
+
+    music(8,500)
 end
 
 function world_u()
@@ -66,7 +68,8 @@ function world_u()
         for e in all(lv.enemy_team)do
             add(enemies,e.id)
         end
-        set_scene('battle',{enemy_team=enemies,lv=lv.lv,party=lv.party,char=lv.char,c1=lv.c1,c2=lv.c2,c3=lv.c3,c4=lv.c4})
+        local track=lv_i>9 and 4 or 0
+        set_scene('battle',{enemy_team=enemies,lv=lv.lv,party=lv.party,char=lv.char,c1=lv.c1,c2=lv.c2,c3=lv.c3,c4=lv.c4,track=track})
         return
     end
 end
