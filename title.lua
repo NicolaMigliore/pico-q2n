@@ -1,8 +1,9 @@
 function title_i()
     btn_i=1
     btns={
-        {l="story",s="world"},
-        {l="team",s="team"}
+        {l="story",s="world",o={}},
+        {l="team",s="team",o={prev_scene="title"}},
+        {l="spar",s="team",o={next_scene="battle",sparring=true}}
     }
 
     _entities={}
@@ -23,7 +24,7 @@ function title_u()
     if(btnp(2))btn_i=max(btn_i-1,1)
     if(btnp(3))btn_i=min(btn_i+1,#btns)
 
-    if(btnp(4))set_scene(btns[btn_i].s,{prev_scene="title"})
+    if(btnp(4))set_scene(btns[btn_i].s,btns[btn_i].o)
 end
 
 function title_d()

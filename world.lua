@@ -51,7 +51,7 @@ function world_u()
     world_cam_y=flr(player.y/128)*128
 
     if btnp(5) then
-        set_scene('team',{prev_scene="world"})
+        set_scene('team',{prev_scene='world'})
         return
     end
 

@@ -61,7 +61,8 @@ function battle_u()
 
     if phase==dn then
         if btnp(🅾️) then
-            set_scene('world')
+            active_team=rewards.restore or active_team
+            set_scene(rewards.prev or 'world', {prev_scene='battle'})
         end
         return
     end
