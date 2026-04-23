@@ -6,19 +6,20 @@ function _init()
     init_menu()
 
     -- levels
+    -- x|y|enemy|enemy|enemy|unlock_lv|unlock_party|unlock_char|color1|color2|color3|color4
     all_levels={
-        '59|76|min|||2||7|15|14|3|11',
+        '59|76|min|||2|||15|14|3|11',
         '186|76|min|min||3|2||15|14|3|11',
-        '186|36|min|min|min|3|2||15|12|3|11',
-        '340|36|dal|||4|||13|9|2|4',
-        '468|36|pos|min||5|3||13|2|1|3',
-        '468|204|min|yun|min||5|||13|2|3|15',
-        '332|204|kil|man||5|||13|14|4|15',
-        '332|156|man|min|min|5|||13|2|4|15',
-        '204|156|dar|min||5|||13|2|4|15',
-        '43|156|bos|||5|||13|2|4|15',
-        '43|220|min|bos|min|5|||13|2|4|15',
-        '195|220|big|bos|baz|5|||13|2|1|5',
+        '186|36|min|min|min|4|2||15|12|3|11',
+        '340|36|dal|||5||3|13|9|2|4',
+        '468|36|pos|min||6||4|13|2|1|3',
+        '468|204|min|yun|min||7||5|13|2|3|15',
+        '332|204|kil|man||8||6|13|14|4|15',
+        '332|156|man|min|min|9||7|13|2|4|15',
+        '204|156|dar|min||10||8|13|2|4|15',
+        '43|156|bos|||11|||13|2|4|15',
+        '43|220|min|bos|min|12|||13|2|4|15',
+        '195|220|big|bos|baz|13|||13|2|1|5',
     }
     each(all_levels,function(v,i)
         all_levels[i]=parse_level_def(v)
@@ -27,29 +28,18 @@ function _init()
     -- team
     roster_ids={'elf','mas','dal','pos','yun','kil','dar','man'}
     max_team_size=load_data('max_team_size')
-    if max_team_size==nil then
-        max_team_size=1
-        store_data('max_team_size',max_team_size)
-    end
     unlocked_chars=load_data('unlocked_chars')
-    if unlocked_chars==nil then
-        unlocked_chars=2
-        store_data('unlocked_chars',unlocked_chars)
-    end
     active_team=load_data('active_team')
-    if active_team==nil then
-        active_team={roster_ids[1]}
-        store_data('active_team',{1,0,0})
-    end
     unlocked_levels=load_data('unlocked_levels')
-    if unlocked_levels==nil then
-        unlocked_levels=1
-        store_data('unlocked_levels',unlocked_levels)
-    end
     lv_i=load_data('lv_i')
-    if lv_i==nil then
-        lv_i=1
-        store_data('lv_i',lv_i)
+    if not max_team_size then
+        max_team_size,unlocked_chars,unlocked_levels,lv_i=1,2,1,1
+        active_team={roster_ids[1]}
+        store_data('max_team_size',1)
+        store_data('unlocked_chars',2)
+        store_data('active_team',active_team)
+        store_data('unlocked_levels',1)
+        store_data('lv_i',1)
     end
 
 	-- actors

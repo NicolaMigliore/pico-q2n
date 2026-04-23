@@ -70,15 +70,18 @@ function battle_u()
         if #t2==0 and not battle_rewarded then
             msg='victory'
             if rewards.lv then
-                unlock_lv(rewards.lv)
+                unlocked_levels=max(rewards.lv,unlocked_levels)
+                store_data('unlocked_levels',unlocked_levels)
                 msg..='\nlevel '..rewards.lv..' unlocked'
             end
             if rewards.party then
                 if rewards.party>max_team_size then msg..='\nparty size +'..(rewards.party-max_team_size) end
-                unlock_party(rewards.party)
+                max_team_size=max(rewards.party,max_team_size)
+                store_data('max_team_size',max_team_size)
             end
             if rewards.char then
-                unlock_char(rewards.char)
+                unlocked_chars=max(rewards.char,unlocked_chars)
+                store_data('unlocked_chars',unlocked_chars)
                 msg..='\n'.._characters[roster_ids[rewards.char]].name..' joins your team!'
             end
             battle_rewarded=true
@@ -185,7 +188,7 @@ function battle_d()
         if(selected)ox,c=ox-4,1
 
         d_char_card(ox,oy,e,c,selected,tm.action)
-        y+=char_card_h(selected)+gap
+        y+=(selected and 16 or 11)+gap
     end)
 
     y=2
@@ -196,7 +199,7 @@ function battle_d()
         local ox,oy=2,y
         if(selected)ox,c=ox+4,1
         d_char_card(ox,oy,e,c,selected,tm.action)
-        y+=char_card_h(selected)+gap
+        y+=(selected and 16 or 11)+gap
     end)
 
     -- commands
@@ -363,7 +366,7 @@ function start_atk_fx(after)
     add_timer('atk_anim',.5,function()
         if fx and fx.e then
             if fx.hp1 then fx.e.hp=fx.hp1 end
-            clear_shader(fx.e)
+            fx.e.shader=nil
         end
         if fx and fx.a then
             local m=fx.a.m
@@ -390,6 +393,23 @@ function start_move_fx(a,tn,t,after)
         end
         start_atk_fx(after)
     end)
+end
+
+function burst(x,y,n,dy,c)
+    for i=1,n+rnd(5)do
+        add_particle(x,y,10+rnd(10),rnd(2)-1,dy-rnd(.8),true,false,false,1,c)
+    end
+end
+
+function ring_burst(x,y,n,life,c,rad,sz)
+    for i=1,n do
+        local die=life+rnd(sz)
+        local a=rnd(1)
+        local dist=rad+rnd(6)
+        local px=x+cos(a)*dist
+        local py=y+sin(a)*dist
+        add_particle(px,py,die,(x-px)/die,(y-py)/die,false,false,true,1+rnd(),c)
+    end
 end
 
 function do_next_action()
@@ -448,9 +468,7 @@ function do_next_action()
         }
         start_atk_fx()
         sfx(1)
-        for i=1,4+rnd(5)do
-            add_particle(target.x,target.y+4,10+rnd(10),rnd(2)-1,-.8-rnd(.8),true,false,false,1,{2,8,7})
-        end
+        burst(target.x,target.y+4,4,-.8,{2,8,7})
     elseif an=='heal' and target_tm then
         local target=target_tm.e
         local he=step_stat(step,action.k)
@@ -471,41 +489,17 @@ function do_next_action()
             hp1=hp1
         }
         start_move_fx(attacker,'heal_move',.4,function()
-            for i=1,4+rnd(5)do
-                add_particle(target.x,target.y+4,10+rnd(10),rnd(2)-1,-.8-rnd(.8),true,false,false,1,{3,11,7})
-            end
+            burst(target.x,target.y+4,4,-.8,{3,11,7})
         end)
         sfx(2)
-        for i=1,15 do
-            local dest_x,dest_y=target.x,target.y
-            local die=11+rnd(5)
-            local a=rnd(1)
-            local dist=8+rnd(6)
-            local x=dest_x+cos(a)*dist
-            local y=dest_y+sin(a)*dist
-            local dx=(dest_x-x)/die
-            local dy=(dest_y-y)/die
-
-            add_particle(x,y,die,dx,dy,false,false,true,1+rnd(),{3,11,7})
-        end
+        ring_burst(target.x,target.y,15,11,{3,11,7},8,5)
     elseif an=='block' then
         attacker.block=max(step_stat(step,action.k),0)
         msg=attacker.name..' blocks'
         attacker.m=new_motion('block_move',attacker.x,attacker.y,attacker.x,attacker.y+2)
         atk_fx={e=attacker}
         start_move_fx(attacker,'block_move',.3,function()end)
-        for i=1,15 do
-            local dest_x,dest_y=attacker.x,attacker.y
-            local die=10+rnd(10)
-            local a=rnd(1)
-            local dist=8+rnd(6)
-            local x=dest_x+cos(a)*dist
-            local y=dest_y+sin(a)*dist
-            local dx=(dest_x-x)/die
-            local dy=(dest_y-y)/die
-
-            add_particle(x,y,die,dx,dy,false,false,true,2+rnd(),{1,12,7})
-        end
+        ring_burst(attacker.x,attacker.y,15,10,{1,12,7},8,10)
         sfx(3)
     elseif an=='boost' and target_tm then
         local target=target_tm.e
@@ -751,7 +745,7 @@ function update_action_fx()
             set_flat_shader(atk_fx.e,7)
         end
     else
-        clear_shader(atk_fx.e)
+        atk_fx.e.shader=nil
     end
 end
 
@@ -775,10 +769,6 @@ function apply_block_outline(e)
     end
 end
 
-function clear_shader(e)
-    e.shader=nil
-end
-
 -- Return the actor's base stat for this step's action, plus any temporary boost.
 function step_stat(tm,k)
     return (tm.e[k] or 0)+(tm.boost[k] or 0)
@@ -795,12 +785,8 @@ function apply_block(target,dmg)
     return dmg-absorbed
 end
 
-function char_card_h(full)
-    return full and 16 or 11
-end
-
 function d_char_card(x,y,e,c,full,a)
-    local w,h=57,char_card_h(full)
+    local w,h=57,full and 16 or 11
 
     rrectfill(x,y,w,h,1,c)
     rrectfill(x+1,y+1,w-2,h-2,1,6)

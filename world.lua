@@ -118,19 +118,6 @@ function world_d()
 
 end
 
-function unlock_lv(n)
-    unlocked_levels=max(n,unlocked_levels)
-    store_data('unlocked_levels',unlocked_levels)
-end
-function unlock_party(n)
-    max_team_size=max(n,max_team_size)
-    store_data('max_team_size',max_team_size)
-end
-function unlock_char(n)
-    unlocked_chars=max(n,unlocked_chars)
-    store_data('unlocked_chars',unlocked_chars)
-end
-
 function parse_level_def(s)
     local p=split(s,'|',false)
     local e={}
