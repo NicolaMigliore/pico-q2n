@@ -1,6 +1,5 @@
 --MARK:Init
 function battle_i(opts)
-    opts=opts or {}
     rewards=opts
     c1=opts.c1 or 15
     c2=opts.c2 or 14
@@ -9,25 +8,26 @@ function battle_i(opts)
     -- phase: pu=pick unit pa=pick action pt=pick target ex=execute dn=done
     pu,pa,pt,ex,dn='pu','pa','pt','ex','dn'
     actions={
+        -- k is the actor stat key used by the action logic and ai scoring.
         {name='attack',spr=2,t='enemy',c=8,p=4,k='ap',bk='atk'},
         {name='block',spr=3,c=12,p=2,k='bp',bk='block'},
         {name='heal',spr=18,t='ally',c=11,p=3,k='he',bk='heal'},
-        {name='boost',spr=19,t='ally',c=10,p=1}
+        {name='boost',spr=19,t='ally',c=10,p=1,k='bm'}
     }
     _entities={}
     t1={}
-    each(active_team or {'elf','mas','dal'},function(id,i)
+    each(active_team,function(id,i)
         if i<=3 then
             local e=new_character(id,12+15*(i-1),72+5*(i-1))
-            add(t1,{t=1,e=e,action=nil,target=nil})
+            add(t1,{t=1,e=e,action=nil,target=nil,boost={}})
             add(_entities,e)
         end
     end)
     t2={}
-    if opts.enemy_team and #opts.enemy_team>0 then
+    if #opts.enemy_team>0 then
         each(opts.enemy_team,function(e_id,i)
             local ne=new_character(e_id,83+15*(i-1),20+5*(i-1),{})
-            add(t2,{t=2,e=ne,action=nil,target=nil})
+            add(t2,{t=2,e=ne,action=nil,target=nil,boost={}})
             add(_entities,ne)
         end)
     end
@@ -320,17 +320,13 @@ function reset_orders()
         tm.action=nil
         tm.target=nil
         tm.order=nil
-        tm.boost_ap=0
-        tm.boost_he=0
-        tm.boost_bp=0
+        tm.boost={}
     end)
     each(t2,function(tm)
         tm.action=nil
         tm.target=nil
         tm.order=nil
-        tm.boost_ap=0
-        tm.boost_he=0
-        tm.boost_bp=0
+        tm.boost={}
     end)
     exec_order={}
     exec_i=1
@@ -342,15 +338,11 @@ function start_execute_phase()
 
     exec_order={}
     for tm in all(t1) do
-        tm.boost_ap=0
-        tm.boost_he=0
-        tm.boost_bp=0
+        tm.boost={}
         add(exec_order,tm)
     end
     for tm in all(t2) do
-        tm.boost_ap=0
-        tm.boost_he=0
-        tm.boost_bp=0
+        tm.boost={}
         add(exec_order,tm)
     end
     sort(exec_order,function(a,b)
@@ -413,6 +405,7 @@ function do_next_action()
     local attacker=step.e
     local target_tm=step.target
     local action=step.action
+    local an=action.name
     local needs_target=action and action.t
 
     if not is_valid_tm(step) then
@@ -427,9 +420,11 @@ function do_next_action()
         return
     end
 
-    if action and action.name=='attack' and target_tm then
+    -- These branches used to check each action name repeatedly.
+    -- They now share action.k metadata plus step_stat() for the common stat math.
+    if an=='attack' and target_tm then
         local target=target_tm.e
-        local raw=(attacker.ap or 0)+(step.boost_ap or 0)
+        local raw=step_stat(step,action.k)
         local block0=target.block or 0
         local dmg=apply_block(target,raw)
         local hp0=target.hp
@@ -456,9 +451,9 @@ function do_next_action()
         for i=1,4+rnd(5)do
             add_particle(target.x,target.y+4,10+rnd(10),rnd(2)-1,-.8-rnd(.8),true,false,false,1,{2,8,7})
         end
-    elseif action and action.name=='heal' and target_tm then
+    elseif an=='heal' and target_tm then
         local target=target_tm.e
-        local he=(attacker.he or 0)+(step.boost_he or 0)
+        local he=step_stat(step,action.k)
         local hp0=target.hp
         local hp1=min(hp0+he,target.max_hp or hp0)
         msg=attacker.name..' heals '..target.name
@@ -493,8 +488,8 @@ function do_next_action()
 
             add_particle(x,y,die,dx,dy,false,false,true,1+rnd(),{3,11,7})
         end
-    elseif action and action.name=='block' then
-        attacker.block=max((attacker.bp or 0)+(step.boost_bp or 0),0)
+    elseif an=='block' then
+        attacker.block=max(step_stat(step,action.k),0)
         msg=attacker.name..' blocks'
         attacker.m=new_motion('block_move',attacker.x,attacker.y,attacker.x,attacker.y+2)
         atk_fx={e=attacker}
@@ -512,26 +507,19 @@ function do_next_action()
             add_particle(x,y,die,dx,dy,false,false,true,2+rnd(),{1,12,7})
         end
         sfx(3)
-    elseif action and action.name=='boost' and target_tm then
+    elseif an=='boost' and target_tm then
         local target=target_tm.e
-        local target_name=target and target.name or 'target'
-        local ta=target_tm.action and target_tm.action.name or nil
+        local target_name=target.name
+        local ta=target_tm.action
+        local k=ta and ta.k
         local bm=attacker.bm or 0
-        if ta=='attack' then
-            local base=target.ap or 0
+        if k then
+            local base=target[k] or 0
             local bonus=base*bm
-            msg=attacker.name..' boosts '..target_name..' atk='..base+target_tm.boost_ap..'+'..bonus
-            target_tm.boost_ap=(target_tm.boost_ap or 0)+bonus
-        elseif ta=='heal' then
-            local base=target.he or 0
-            local bonus=base*bm
-            msg=attacker.name..' boosts '..target_name..' heal='..base+target_tm.boost_he..'+'..bonus
-            target_tm.boost_he=(target_tm.boost_he or 0)+bonus
-        elseif ta=='block' then
-            local base=target.bp or 0
-            local bonus=base*bm
-            msg=attacker.name..' boosts '..target_name..' block='..base+target_tm.boost_bp ..'+'..bonus
-            target_tm.boost_bp=(target_tm.boost_bp or 0)+bonus
+            local b=target_tm.boost
+            local cur=b[k] or 0
+            msg=attacker.name..' boosts '..target_name..' '..(ta.bk or k)..'='..base+cur..'+'..bonus
+            b[k]=cur+bonus
         else
             msg=attacker.name..' boosts '..target_name..' (no effect)'
         end
@@ -551,7 +539,7 @@ function do_next_action()
         end)
         sfx(4)
     else
-        msg=attacker.name..' uses '..(action and action.name or '...')
+        msg=attacker.name..' uses '..action.name
     end
 
     exec_i+=1
@@ -578,10 +566,9 @@ function team_action_weights(tm)
     local weights={}
 
     -- stats drive the base tendency for each action
-    weights.attack=1+(e.ap or 0)*2
-    weights.block=1+(e.bp or 0)*2
-    weights.heal=1+(e.he or 0)*2
-    weights.boost=1+(e.bm or 0)*2
+    for a in all(actions) do
+        weights[a.name]=1+(e[a.k] or 0)*2
+    end
 
     -- low hp enemies lean defensive/supportive
     if e.hp<=2 then
@@ -635,21 +622,18 @@ function pick_weighted_target(src_tm,a,targets)
         local w=1
         local e=tm.e
 
-        if a.name=='attack' then
+        if a.k=='ap' then
             w+=max(6-(e.hp or 0),0)
             w+=max((e.ap or 0)-1,0)
             w+=max((e.he or 0)-1,0)
-        elseif a.name=='heal' then
+        elseif a.k=='he' then
             w+=max(6-(e.hp or 0),0)*2
-        elseif a.name=='boost' then
+        elseif a.k=='bm' then
             if tm==src_tm then
                 w=0
             elseif tm.action then
-                local ta=tm.action
-                if ta and ta.k=='ap' then w+=(e.ap or 0)*2
-                elseif ta and ta.k=='he' then w+=(e.he or 0)*2
-                elseif ta and ta.k=='bp' then w+=(e.bp or 0)*2
-                else w=0 end
+                local k=tm.action.k
+                if k then w+=(e[k] or 0)*2 else w=0 end
             else
                 w=0
             end
@@ -793,6 +777,11 @@ end
 
 function clear_shader(e)
     e.shader=nil
+end
+
+-- Return the actor's base stat for this step's action, plus any temporary boost.
+function step_stat(tm,k)
+    return (tm.e[k] or 0)+(tm.boost[k] or 0)
 end
 
 function apply_block(target,dmg)

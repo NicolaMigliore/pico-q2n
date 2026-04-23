@@ -1,4 +1,5 @@
-function team_i()
+function team_i(opts)
+    prev_scene=opts.prev_scene
     team_roster={}
     each(roster_ids,function(id,i)
         if i<=min(unlocked_chars or #roster_ids,#roster_ids) then
@@ -36,7 +37,7 @@ function team_u()
         if #team_pick>0 then
             active_team=copy(team_pick)
             store_data('active_team',active_team)
-            set_scene('world')
+            set_scene(prev_scene)
         end
     end
 end

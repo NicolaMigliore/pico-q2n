@@ -1,12 +1,12 @@
 function world_i()
     levels={}
     each(all_levels,function(lv,i)
-        if i<=min(unlocked_levels or #all_levels,#all_levels) then
+        if i<=min(unlocked_levels,#all_levels) then
             add(levels,lv)
         end
     end)
 
-    lv_i=mid(1,lv_i or 1,#levels)
+    lv_i=mid(1,lv_i,#levels)
     local sel=levels[lv_i]
     player=new_character(active_team[1],sel.x,sel.y-4)
     world_cam_x=flr(player.x/128)*128
@@ -51,7 +51,7 @@ function world_u()
     world_cam_y=flr(player.y/128)*128
 
     if btnp(5) then
-        set_scene('team')
+        set_scene('team',{prev_scene="world"})
         return
     end
 

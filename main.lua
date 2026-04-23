@@ -11,7 +11,7 @@ function _init()
         '186|76|min|min||3|2||15|14|3|11',
         '186|36|min|min|min|3|2||15|12|3|11',
         '340|36|dal|||4|||13|9|2|4',
-        '468|36|pos|min||5|||13|2|1|3',
+        '468|36|pos|min||5|3||13|2|1|3',
         '468|204|min|yun|min||5|||13|2|3|15',
         '332|204|kil|man||5|||13|14|4|15',
         '332|156|man|min|min|5|||13|2|4|15',
@@ -61,9 +61,10 @@ function _init()
 		battle={i=battle_i,u=battle_u,d=battle_d},
 		team={i=team_i,u=team_u,d=team_d},
 		world={i=world_i,u=world_u,d=world_d},
+        title={i=title_i,u=title_u,d=title_d},
 	}
 	cur_scene=_scenes.test
-	set_scene('world')
+	set_scene('title')
 
     particles_i()
 
@@ -104,7 +105,6 @@ function _draw()
         poke(0x5f34,0x2)
         circfill(64,64,r,0 | 0x1800)
     end
-	
 	if(deb)print(deb,70,10)
 end
 
@@ -147,10 +147,10 @@ function init_save()
     cartdata('pico-q2n')
 end
 
+save_slots={max_team_size=0,unlocked_chars=4,unlocked_levels=5,lv_i=6}
+
 function store_data(k,v)
-    if k=='max_team_size' then
-        dset(0,v)
-    elseif k=='active_team' then
+    if k=='active_team' then
         local a=v
         if a[1] and type(a[1])=='string' then
             a={
@@ -162,33 +162,13 @@ function store_data(k,v)
         dset(1,a[1] or 0)
         dset(2,a[2] or 0)
         dset(3,a[3] or 0)
-    elseif k=='unlocked_chars' then
-        dset(4,v)
-    elseif k=='unlocked_levels' then
-        dset(5,v)
-    elseif k=='lv_i' then
-        dset(6,v)
+    elseif save_slots[k]!=nil then
+        dset(save_slots[k],v)
     end
 end
 
 function load_data(k)
-    if k=='max_team_size' then
-        local v=dget(0)
-        if v==0 then return nil end
-        return v
-    elseif k=='unlocked_chars' then
-        local v=dget(4)
-        if v==0 then return nil end
-        return v
-    elseif k=='unlocked_levels' then
-        local v=dget(5)
-        if v==0 then return nil end
-        return v
-    elseif k=='lv_i' then
-        local v=dget(6)
-        if v==0 then return nil end
-        return v
-    elseif k=='active_team' then
+    if k=='active_team' then
         local ids={}
         local i1=dget(1)
         local i2=dget(2)
@@ -198,6 +178,10 @@ function load_data(k)
         if i2>0 and roster_ids[i2] then add(ids,roster_ids[i2]) end
         if i3>0 and roster_ids[i3] then add(ids,roster_ids[i3]) end
         return ids
+    elseif save_slots[k]!=nil then
+        local v=dget(save_slots[k])
+        if v==0 then return nil end
+        return v
     end
 end
 
