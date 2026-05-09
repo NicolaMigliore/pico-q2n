@@ -9,7 +9,7 @@ function characters_i()
         man='man|manuagog|64|32|80|32|60|10|10|10|.5',
         dar='dar|darkgreen|96|32|112|32|50|10|12|10|.7',
         baz='baz|elbazo|96|48|112|48|40|10|5|10|.5',
-        big='big|big\'mon|64|48|80|48|40|10|5|10|.5',
+        big='big|big \'mon|64|48|80|48|40|10|5|10|.5',
         min='min|minion|0|48|16|48|40|10|5|10|.5',
         bos='bos|boss|32|48|48|48|40|10|5|10|.5',
     }

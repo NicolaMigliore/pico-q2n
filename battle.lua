@@ -69,7 +69,7 @@ function battle_u()
 
     if is_battle_over() then
         if #t2==0 and not battle_rewarded then
-            msg='victory'
+            msg='victory!'
             if rewards.lv then
                 unlocked_levels=max(rewards.lv,unlocked_levels)
                 store_data('unlocked_levels',unlocked_levels)

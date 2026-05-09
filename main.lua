@@ -13,7 +13,7 @@ function _init()
         '186|36|min|min|min|4|2||15|12|3|11',
         '340|36|dal|||5||3|13|9|2|4',
         '468|36|pos|min||6||4|13|2|1|3',
-        '468|204|min|yun|min||7||5|13|2|3|15',
+        '468|204|min|yun|min|7|||5|13|2|3|15',
         '332|204|kil|man||8||6|13|14|4|15',
         '332|156|man|min|min|9||7|13|2|4|15',
         '204|156|dar|min||10||8|13|2|4|15',
@@ -26,7 +26,7 @@ function _init()
     end)
 
     -- team
-    roster_ids={'elf','mas','dal','pos','yun','kil','dar','man'}
+    roster_ids={'elf','mas','dal','pos','yun','kil','man','dar'}
     max_team_size=load_data('max_team_size')
     unlocked_chars=load_data('unlocked_chars')
     active_team=load_data('active_team')
@@ -178,12 +178,12 @@ end
 function init_menu()
     menuitem(1,'reset save',function()
         clear_saved_data()
-        set_scene('world')
+        set_scene('title')
         return false
     end)
     menuitem(2,'unlock all',function()
         unlock_all_features()
-        set_scene('world')
+        set_scene('title')
         return false
     end)
 end
