@@ -543,15 +543,20 @@ end
 function auto_plan_enemy_orders()
     local q=shuffled_team(t2)
     for tm in all(q) do
-        local a=pick_weighted_action(team_action_weights(tm))
+        local weights=team_action_weights(tm)
+        local a=pick_weighted_action(weights)
         tm.action=a
         tm.target=nil
         tm.order=assign_i
         assign_i+=1
+        log('[PLAN ORDERS] enemy ai '..tm.e.name..' action='..a.name..' weights atk='..max(weights.attack or 0,0)..' blk='..max(weights.block or 0,0)..' hea='..max(weights.heal or 0,0)..' bst='..max(weights.boost or 0,0))
 
         if a.t then
             local targets=targets_for_team_action(tm.t,a)
-            if #targets>0 then tm.target=pick_weighted_target(tm,a,targets) end
+            if #targets>0 then
+                tm.target=pick_weighted_target(tm,a,targets)
+                if tm.target then log('[TARGET] enemy ai '..tm.e.name..' target='..tm.target.e.name..' for '..a.name) end
+            end
         end
     end
 end
@@ -559,32 +564,41 @@ end
 function team_action_weights(tm)
     local e=tm.e
     local weights={}
+    local hurt=count_damaged_team_members(tm.t)
+    local boostable=count_boostable_allies(tm)
 
     -- stats drive the base tendency for each action
     for a in all(actions) do
-        weights[a.name]=1+(e[a.k] or 0)*2
+        weights[a.name]=10+(e[a.k] or 0)*2
     end
 
+    -- override bst to make the action competitive with other actions
+    weights.boost=10+(e.bm or 0)*20
+
     -- low hp enemies lean defensive/supportive
-    if e.hp<=2 then
-        weights.block+=3
-        weights.heal+=2
+    if e.hp<=15 then
+        weights.block+=15
+        weights.heal+=10
     end
 
     -- heal becomes more attractive when allies are hurt
-    weights.heal+=count_damaged_team_members(tm.t)*(e.he or 0)
+    weights.heal+=hurt*(e.he or 0)
 
     -- boost is best when allies have actions worth boosting
-    if count_boostable_allies(tm)>=1 then
-        weights.boost+=2*(e.bm or 0)
+    if boostable>=1 then
+        weights.boost+=20*(e.bm or 0)
     else
-        weights.boost=max(weights.boost-2,0)
+        --weights.boost=max(weights.boost-2,0)
+        weights.boost-=20
     end
 
     -- if nobody is hurt, de-emphasize healing a bit
-    if count_damaged_team_members(tm.t)<=0 then
-        weights.heal=max(weights.heal-2,0)
+    if hurt<=0 then
+        -- weights.heal=max(weights.heal-2,0)
+        weights.heal=0
     end
+
+    log('[WEIGHTS] enemy ai '..e.name..' hp='..e.hp..'/'..(e.max_hp or e.hp)..' ap='..(e.ap or 0)..' bp='..(e.bp or 0)..' he='..(e.he or 0)..' bm='..(e.bm or 0)..' hurt='..hurt..' boostable='..boostable..' weights atk='..max(weights.attack or 0,0)..' blk='..max(weights.block or 0,0)..' hea='..max(weights.heal or 0,0)..' bst='..max(weights.boost or 0,0))
 
     return weights
 end
@@ -612,23 +626,23 @@ end
 function pick_weighted_target(src_tm,a,targets)
     local total=0
     local weights={}
+    local summary='[PICK TARGET] enemy ai '..src_tm.e.name..' target weights for '..a.name
 
     for tm in all(targets) do
         local w=1
         local e=tm.e
 
         if a.k=='ap' then
-            w+=max(6-(e.hp or 0),0)
-            w+=max((e.ap or 0)-1,0)
-            w+=max((e.he or 0)-1,0)
+            w+=(e.max_hp or e.hp)-e.hp
+            w+=max((e.ap or 0)-10,0)
+            w+=max((e.he or 0)-10,0)
         elseif a.k=='he' then
-            w+=max(6-(e.hp or 0),0)*2
+            w+=(e.max_hp or e.hp)-e.hp*2
         elseif a.k=='bm' then
             if tm==src_tm then
                 w=0
             elseif tm.action then
-                local k=tm.action.k
-                if k then w+=(e[k] or 0)*2 else w=0 end
+                if tm.action.k then w+=(e[k] or 0)*2 else w=0 end
             else
                 w=0
             end
@@ -637,7 +651,9 @@ function pick_weighted_target(src_tm,a,targets)
         w=max(w,0)
         weights[tm]=w
         total+=w
+        summary=summary..' '..e.name..'='..w
     end
+    log(summary)
 
     if total<=0 then return rnd(targets) end
 

@@ -8,6 +8,8 @@ function team_i(opts)
         end
     end)
 
+    if(is_sparring)add(team_roster,"min")
+
     team_view_n=4
     team_top_i=1
     team_sel_i=1

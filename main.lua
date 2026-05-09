@@ -11,7 +11,7 @@ function _init()
         '59|76|min|||2|||15|14|3|11',
         '186|76|min|min||3|2||15|14|3|11',
         '186|36|min|min|min|4|2||15|12|3|11',
-        '340|36|dal|||5||3|13|9|2|4',
+        '340|36|min|dal|min|5||3|13|9|2|4',
         '468|36|pos|min||6||4|13|2|1|3',
         '468|204|min|yun|min|7|||5|13|2|3|15',
         '332|204|kil|man||8||6|13|14|4|15',
@@ -47,7 +47,7 @@ function _init()
 	
 	-- scenes
 	_scenes={
-		test={i=function()end,u=function()end,d=function()print(tmp,1,1,1)end},
+		-- test={i=function()end,u=function()end,d=function()print(tmp,1,1,1)end},
 		battle={i=battle_i,u=battle_u,d=battle_d},
 		team={i=team_i,u=team_u,d=team_d},
 		world={i=world_i,u=world_u,d=world_d},
@@ -100,7 +100,9 @@ end
 
 function set_scene(newscene,opts)
 	if(_scenes[newscene]) then
-		add_timer('transition', 1, function()
+        -- skip delay if it is the first scene 
+        local delay=cur_scene and 1 or 0
+		add_timer('transition', delay, function()
 		cur_scene=_scenes[newscene]
 		cur_scene.i(opts)
 		end)
