@@ -549,13 +549,13 @@ function auto_plan_enemy_orders()
         tm.target=nil
         tm.order=assign_i
         assign_i+=1
-        log('[PLAN ORDERS] enemy ai '..tm.e.name..' action='..a.name..' weights atk='..max(weights.attack or 0,0)..' blk='..max(weights.block or 0,0)..' hea='..max(weights.heal or 0,0)..' bst='..max(weights.boost or 0,0))
+        -- log('[PLAN ORDERS] enemy ai '..tm.e.name..' action='..a.name..' weights atk='..max(weights.attack or 0,0)..' blk='..max(weights.block or 0,0)..' hea='..max(weights.heal or 0,0)..' bst='..max(weights.boost or 0,0))
 
         if a.t then
             local targets=targets_for_team_action(tm.t,a)
             if #targets>0 then
                 tm.target=pick_weighted_target(tm,a,targets)
-                if tm.target then log('[TARGET] enemy ai '..tm.e.name..' target='..tm.target.e.name..' for '..a.name) end
+                -- if tm.target then log('[TARGET] enemy ai '..tm.e.name..' target='..tm.target.e.name..' for '..a.name) end
             end
         end
     end
@@ -598,7 +598,7 @@ function team_action_weights(tm)
         weights.heal=0
     end
 
-    log('[WEIGHTS] enemy ai '..e.name..' hp='..e.hp..'/'..(e.max_hp or e.hp)..' ap='..(e.ap or 0)..' bp='..(e.bp or 0)..' he='..(e.he or 0)..' bm='..(e.bm or 0)..' hurt='..hurt..' boostable='..boostable..' weights atk='..max(weights.attack or 0,0)..' blk='..max(weights.block or 0,0)..' hea='..max(weights.heal or 0,0)..' bst='..max(weights.boost or 0,0))
+    -- log('---\n[WEIGHTS] enemy ai '..e.name..' hp='..e.hp..'/'..(e.max_hp or e.hp)..' ap='..(e.ap or 0)..' bp='..(e.bp or 0)..' he='..(e.he or 0)..' bm='..(e.bm or 0)..' hurt='..hurt..' boostable='..boostable..' weights atk='..max(weights.attack or 0,0)..' blk='..max(weights.block or 0,0)..' hea='..max(weights.heal or 0,0)..' bst='..max(weights.boost or 0,0))
 
     return weights
 end
@@ -639,7 +639,7 @@ function pick_weighted_target(src_tm,a,targets)
         elseif a.k=='he' then
             w+=(e.max_hp or e.hp)-e.hp*2
         elseif a.k=='bm' then
-            if tm==src_tm then
+            if tm==src_tm or (tm.action and tm.action.name=="boost") then
                 w=0
             elseif tm.action then
                 if tm.action.k then w+=(e[k] or 0)*2 else w=0 end
@@ -653,7 +653,7 @@ function pick_weighted_target(src_tm,a,targets)
         total+=w
         summary=summary..' '..e.name..'='..w
     end
-    log(summary)
+    -- log(summary)
 
     if total<=0 then return rnd(targets) end
 
