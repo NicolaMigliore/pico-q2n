@@ -510,11 +510,11 @@ function do_next_action()
         local bm=attacker.bm or 0
         if k then
             local base=target[k] or 0
-            local bonus=base*bm
+            local bonus=trim_1dp(base*bm)
             local b=target_tm.boost
-            local cur=b[k] or 0
-            msg=attacker.name..' boosts '..target_name..' '..(ta.bk or k)..'='..base+cur..'+'..bonus
-            b[k]=cur+bonus
+            local cur=trim_1dp(b[k] or 0)
+            msg=attacker.name..' boosts '..target_name..' '..(ta.bk or k)..'='..trim_1dp(base+cur)..'+'..bonus
+            b[k]=trim_1dp(cur+bonus)
         else
             msg=attacker.name..' boosts '..target_name..' (no effect)'
         end
@@ -788,7 +788,12 @@ end
 
 -- Return the actor's base stat for this step's action, plus any temporary boost.
 function step_stat(tm,k)
-    return (tm.e[k] or 0)+(tm.boost[k] or 0)
+    return trim_1dp((tm.e[k] or 0)+(tm.boost[k] or 0))
+end
+
+-- Truncate to 1 decimal place to keep boosted stats readable and stable.
+function trim_1dp(n)
+    return flr((n or 0)*10)/10
 end
 
 function apply_block(target,dmg)
